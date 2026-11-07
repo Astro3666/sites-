@@ -101,7 +101,22 @@ section.book{padding:72px 0;background:#F8FAFC;border-top:1px solid #E2E8F0}
 .panel h3{margin:0 0 14px;font-size:17px;display:flex;gap:10px;align-items:center}
 .panel h3 i{font-style:normal;display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-size:13px}
 .panel+.panel{margin-top:16px}
-.svc{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.svc{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.svc .opt{display:flex;gap:14px;align-items:center;padding:16px}
+.svc .opt svg{width:64px;height:40px;flex:none;color:var(--blue)}
+.svc .opt em{font-size:20px;margin-top:2px}
+.sub{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:20px 0 10px}
+html[lang=ar] .sub{letter-spacing:0}
+.xtra{display:grid;gap:10px}
+.xtra .opt{display:flex;gap:12px;align-items:center}
+.xtra .box{width:24px;height:24px;border-radius:7px;border:2px solid #CBD5E1;flex:none;display:grid;place-items:center}
+.xtra .opt[aria-pressed=true] .box{background:var(--blue);border-color:var(--blue)}
+.xtra .opt .box svg{opacity:0}.xtra .opt[aria-pressed=true] .box svg{opacity:1}
+.xtra .opt div{flex:1}
+.xtra .opt em{margin:0;white-space:nowrap}
+.sum dd.x{font-weight:500}
+.price{display:inline-flex;gap:8px;flex-wrap:wrap;margin:0 0 22px}
+.price span{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:6px 12px;font-size:14px;font-weight:600}
 .opt{border:1.5px solid #E2E8F0;border-radius:14px;padding:14px;cursor:pointer;background:#fff;text-align:start;font:inherit;color:inherit}
 .opt b{display:block;font-size:15px}.opt span{display:block;color:var(--muted);font-size:13px}.opt em{display:block;font-style:normal;font-weight:700;color:var(--blue);margin-top:6px}
 .opt[aria-pressed=true]{border-color:var(--blue);background:var(--soft);box-shadow:0 0 0 3px rgba(29,63,209,.12)}
@@ -131,8 +146,8 @@ section.book{padding:72px 0;background:#F8FAFC;border-top:1px solid #E2E8F0}
 .ok h3{justify-content:center}
 .ref{font-family:ui-monospace,Menlo,monospace;background:var(--soft);padding:4px 10px;border-radius:8px}
 .small{font-size:13px;color:var(--muted)}
-@media (max-width:860px){.bk{grid-template-columns:minmax(0,1fr)}.sum{position:static}.svc{grid-template-columns:1fr}.times{grid-template-columns:repeat(3,1fr)}}
-@media (max-width:560px){.fields,.cardf{grid-template-columns:1fr}.navb{display:none}}
+@media (max-width:860px){.bk{grid-template-columns:minmax(0,1fr)}.sum{position:static}.svc{grid-template-columns:1fr 1fr}.times{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:560px){.svc{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.svc .opt{flex-direction:column;align-items:flex-start;gap:8px;padding:14px}.svc .opt em{font-size:18px}.xtra .opt em{font-size:14px}.fields,.cardf{grid-template-columns:1fr}.navb{display:none}}
 @media (max-width:560px){.steps,.perks{grid-template-columns:1fr}.brand small{display:none}}
 </style>
 </head>
@@ -146,6 +161,7 @@ section.book{padding:72px 0;background:#F8FAFC;border-top:1px solid #E2E8F0}
   <div>
     <h1 data-t="h1"></h1>
     <p class="lead" data-t="lead"></p>
+    <div class="price"><span data-t="pSedan"></span><span data-t="pSuv"></span></div>
     <form id="f">
       <label for="n" data-t="nameL"></label><input id="n" maxlength="20" autocomplete="off">
       <label for="p" data-t="phoneL"></label><input id="p" type="tel" inputmode="tel" placeholder="+968">
@@ -175,7 +191,7 @@ section.book{padding:72px 0;background:#F8FAFC;border-top:1px solid #E2E8F0}
   <h2 data-t="bookH"></h2>
   <div class="bk">
     <div>
-      <div class="panel"><h3><i>1</i><span data-t="b1"></span></h3><div class="svc" id="svc"></div></div>
+      <div class="panel"><h3><i>1</i><span data-t="b1"></span></h3><div class="svc" id="svc"></div><div class="sub" data-t="xH"></div><div class="xtra" id="xtra"></div></div>
       <div class="panel"><h3><i>2</i><span data-t="b2"></span></h3><div class="days" id="days"></div><div class="times" id="times"></div></div>
       <div class="panel"><h3><i>3</i><span data-t="b3"></span></h3>
         <div class="fields">
@@ -201,7 +217,7 @@ section.book{padding:72px 0;background:#F8FAFC;border-top:1px solid #E2E8F0}
     <aside class="panel sum" id="sum">
       <div id="sumBody">
         <h3 data-t="sumH"></h3>
-        <dl><dt data-t="sService"></dt><dd id="sS">–</dd><dt data-t="sWhen"></dt><dd id="sW">–</dd><dt data-t="sPay"></dt><dd id="sP">–</dd>
+        <dl id="sDl"><dt data-t="sService"></dt><dd id="sS">–</dd><dt data-t="sWhen"></dt><dd id="sW">–</dd><dt data-t="sPay"></dt><dd id="sP">–</dd>
           <dt class="tot" data-t="sTotal"></dt><dd class="tot" id="sT">–</dd></dl>
         <button class="btn" id="confirm" type="button"></button>
         <div class="berr" id="berr" role="alert"></div>
@@ -239,15 +255,16 @@ section.book{padding:72px 0;background:#F8FAFC;border-top:1px solid #E2E8F0}
 <script>
 const STRIPS = ${JSON.stringify(strips)};
 const T = {
-  en: { bookNav: 'Book a wash', bookH: 'Book your wash and pay online', b1: 'Choose a service', b2: 'Pick a day and time', b3: 'Your details', b4: 'Payment',
+  en: { bookNav: 'Book a wash', bookH: 'Book your wash and pay online', b1: 'Choose your car', xH: 'Extras', pSedan: 'Sedan 1.500 OMR', pSuv: 'SUV 2.000 OMR', b2: 'Pick a day and time', b3: 'Your details', b4: 'Payment',
     carL: 'Car (model and plate)', carP: 'e.g. Toyota Camry · 12345 A', payCard: 'Pay online', payCardS: 'Card or Apple Pay', payShop: 'Pay at the shop', payShopS: 'Cash or card on arrival',
     cardN: 'Card number', cardE: 'Expiry', cardC: 'CVV', secure: 'Payments are processed securely by the payment provider. Card details never touch this website.',
-    sumH: 'Your booking', sService: 'Service', sWhen: 'When', sPay: 'Payment', sTotal: 'Total', stampPerk: 'Every booked wash adds a stamp to your Wallet card automatically.',
+    sumH: 'Your booking', sService: 'Car wash', sWhen: 'When', sPay: 'Payment', sTotal: 'Total', stampPerk: 'Every booked wash adds a stamp to your Wallet card automatically.',
     okH: 'Booking confirmed', okRef: 'Reference', okAgain: 'Book another wash', demoPay: 'Demo preview: no real payment was taken.',
     payNow: (p) => 'Pay ' + p + ' and book', bookShop: 'Confirm booking', omr: (n) => n.toFixed(3) + ' OMR', min: 'min',
-    errSvc: 'Choose a service.', errTime: 'Pick a day and time.', errName: 'Enter your name and phone.', errCard: 'Check the card details.',
+    errSvc: 'Choose sedan or SUV.', errTime: 'Pick a day and time.', errName: 'Enter your name and phone.', errCard: 'Check the card details.',
     okText: (s, w) => s + ', ' + w + '. We will send a WhatsApp reminder.', paidCard: 'Paid online', payLater: 'At the shop', full: 'Full',
-    svcs: [['Exterior wash', 'Foam, hand wash, dry', 3, 25], ['Full wash', 'Exterior + interior vacuum', 5, 45], ['Polish & wax', 'Machine polish, wax, tyre shine', 12, 90]],
+    svcs: [['Sedan', 'Saloon, hatchback, coupe', 1.5, 'sedan'], ['SUV', '4x4, pickup, 7-seater', 2, 'suv']],
+    extras: [['Engine bay & under car', 'Engine bay degrease + underbody wash', 1], ['Special nano soap', 'Nano-coating soap for extra shine and water beading', 1]],
     week: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], today: 'Today',
     name: 'Car Wash', name2: 'مغسلة سيارات', h1: 'Wash 9 times, your 10th is free', lead: 'Your stamp card lives in Apple Wallet and updates itself every time you wash. No app, no paper card to lose.',
     nameL: 'Your name', phoneL: 'Phone', add: 'Add to Apple Wallet', stamps: 'Stamps', rule: 'Wash 9 times, your 10th is free', cust: 'Customer', mid: 'Member ID',
@@ -260,15 +277,16 @@ const T = {
     foot: 'Loyalty card and website design © ' + new Date().getFullYear() + ' Mazen. All rights reserved.', demoNote: 'Demo preview: the real card downloads once the service is live.',
     left: (n) => n === 0 ? 'Your free wash is ready!' : n === 1 ? '1 more wash until your free one' : n + ' more washes until your free one',
     toast: (s) => 'You now have ' + s + '/10 stamps', free: 'Your free wash is ready!', lang: 'العربية', you: 'SALIM' },
-  ar: { bookNav: 'احجز غسلة', bookH: 'احجز غسلتك وادفع أونلاين', b1: 'اختر الخدمة', b2: 'اختر اليوم والوقت', b3: 'بياناتك', b4: 'الدفع',
+  ar: { bookNav: 'احجز غسلة', bookH: 'احجز غسلتك وادفع أونلاين', b1: 'اختر نوع سيارتك', xH: 'إضافات', pSedan: 'سيدان 1.500 ر.ع', pSuv: 'دفع رباعي 2.000 ر.ع', b2: 'اختر اليوم والوقت', b3: 'بياناتك', b4: 'الدفع',
     carL: 'السيارة (النوع والرقم)', carP: 'مثال: تويوتا كامري · 12345 أ', payCard: 'ادفع أونلاين', payCardS: 'بطاقة أو Apple Pay', payShop: 'ادفع في المحل', payShopS: 'نقداً أو بالبطاقة عند الوصول',
     cardN: 'رقم البطاقة', cardE: 'الانتهاء', cardC: 'الرمز', secure: 'تتم معالجة الدفع بأمان عبر مزود الدفع. بيانات البطاقة لا تمر عبر هذا الموقع.',
-    sumH: 'حجزك', sService: 'الخدمة', sWhen: 'الموعد', sPay: 'الدفع', sTotal: 'المجموع', stampPerk: 'كل غسلة محجوزة تضيف ختماً لبطاقتك في Wallet تلقائياً.',
+    sumH: 'حجزك', sService: 'غسيل السيارة', sWhen: 'الموعد', sPay: 'الدفع', sTotal: 'المجموع', stampPerk: 'كل غسلة محجوزة تضيف ختماً لبطاقتك في Wallet تلقائياً.',
     okH: 'تم تأكيد الحجز', okRef: 'رقم الحجز', okAgain: 'احجز غسلة أخرى', demoPay: 'معاينة تجريبية: لم يتم خصم أي مبلغ.',
     payNow: (p) => 'ادفع ' + p + ' واحجز', bookShop: 'تأكيد الحجز', omr: (n) => n.toFixed(3) + ' ر.ع', min: 'دقيقة',
-    errSvc: 'اختر الخدمة.', errTime: 'اختر اليوم والوقت.', errName: 'اكتب اسمك ورقم هاتفك.', errCard: 'تحقق من بيانات البطاقة.',
+    errSvc: 'اختر سيدان أو دفع رباعي.', errTime: 'اختر اليوم والوقت.', errName: 'اكتب اسمك ورقم هاتفك.', errCard: 'تحقق من بيانات البطاقة.',
     okText: (s, w) => s + '، ' + w + '. سنرسل لك تذكيراً على واتساب.', paidCard: 'مدفوع أونلاين', payLater: 'في المحل', full: 'محجوز',
-    svcs: [['غسيل خارجي', 'رغوة، غسيل يدوي، تنشيف', 3, 25], ['غسيل كامل', 'خارجي + تنظيف داخلي بالمكنسة', 5, 45], ['تلميع وشمع', 'تلميع بالماكينة، شمع، تلميع الإطارات', 12, 90]],
+    svcs: [['سيدان', 'صالون، هاتشباك، كوبيه', 1.5, 'sedan'], ['دفع رباعي', '4x4، بيك أب، 7 ركاب', 2, 'suv']],
+    extras: [['غسيل المحرك وأسفل السيارة', 'تنظيف حجرة المحرك + غسيل أسفل السيارة', 1], ['صابون النانو الخاص', 'صابون بتقنية النانو لمعان أقوى وطرد للماء', 1]],
     week: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'], today: 'اليوم',
     name: 'مغسلة سيارات', name2: 'Car Wash', h1: 'اغسل ٩ مرات، والغسلة العاشرة مجاناً', lead: 'بطاقة الأختام في Apple Wallet وتتحدث تلقائياً مع كل غسلة. بدون تطبيق وبدون بطاقة ورقية تضيع.',
     nameL: 'الاسم', phoneL: 'الهاتف', add: 'أضف إلى Apple Wallet', stamps: 'الأختام', rule: 'اغسل ٩ مرات، والغسلة العاشرة مجاناً', cust: 'العميل', mid: 'رقم العضوية',
@@ -331,14 +349,21 @@ $('reset').onclick = () => { window.__userAt = Date.now(); window.cardReset(); }
 $('n').addEventListener('input', (e) => { name = e.target.value.trim().toUpperCase(); render(); });
 $('f').addEventListener('submit', (e) => { e.preventDefault(); $('note').textContent = T[lang].demoNote; });
 // ---------- booking & payment (demo) ----------
-const bk = { svc: -1, day: 0, time: '', pay: 'card' };
+const bk = { svc: -1, day: 0, time: '', pay: 'card', x: [false, false] };
+const CARS = {
+  sedan: '<svg viewBox="0 0 64 40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 27v-5l6-2 8-8h22l10 8 9 2v5"/><path d="M4 27h6m12 0h20m12 0h6"/><circle cx="16" cy="28" r="5"/><circle cx="48" cy="28" r="5"/><path d="M20 19l5-5h12l7 5z"/></svg>',
+  suv: '<svg viewBox="0 0 64 40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 28V17l5-1 6-8h34l6 8 6 2v10"/><path d="M3 28h7m12 0h20m12 0h7"/><circle cx="16" cy="29" r="5.5"/><circle cx="48" cy="29" r="5.5"/><path d="M17 16l4-5h10v5zM35 11h11l4 5H35z"/></svg>',
+};
+const TICK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const total = (t) => (bk.svc < 0 ? 0 : t.svcs[bk.svc][2] + t.extras.reduce((a, e, i) => a + (bk.x[i] ? e[2] : 0), 0));
 const SLOTS = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'];
 const fullSlot = (d, t) => ((d * 7 + SLOTS.indexOf(t) * 3) % 5) === 0; // pretend some slots are taken
 const dayDate = (i) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + i); return d; };
 function renderBooking() {
   const t = T[lang];
   document.querySelectorAll('[data-tp]').forEach((el) => { el.placeholder = t[el.dataset.tp]; });
-  $('svc').innerHTML = t.svcs.map((v, i) => \`<button class="opt" type="button" data-svc="\${i}" aria-pressed="\${bk.svc === i}"><b>\${v[0]}</b><span>\${v[1]} · \${v[3]} \${t.min}</span><em>\${t.omr(v[2])}</em></button>\`).join('');
+  $('svc').innerHTML = t.svcs.map((v, i) => '<button class="opt" type="button" data-svc="' + i + '" aria-pressed="' + (bk.svc === i) + '">' + CARS[v[3]] + '<div><b>' + v[0] + '</b><span>' + v[1] + '</span><em>' + t.omr(v[2]) + '</em></div></button>').join('');
+  $('xtra').innerHTML = t.extras.map((v, i) => '<button class="opt" type="button" data-x="' + i + '" aria-pressed="' + bk.x[i] + '"><span class="box">' + TICK + '</span><div><b>' + v[0] + '</b><span>' + v[1] + '</span></div><em>+' + t.omr(v[2]) + '</em></button>').join('');
   $('days').innerHTML = Array.from({ length: 10 }, (_, i) => { const d = dayDate(i);
     return \`<button class="opt" type="button" data-day="\${i}" aria-pressed="\${bk.day === i}"><span>\${i === 0 ? t.today : t.week[d.getDay()]}</span><b>\${d.getDate()}</b></button>\`; }).join('');
   const nowH = new Date().getHours();
@@ -349,16 +374,23 @@ function renderBooking() {
   $('cardBox').style.display = bk.pay === 'card' ? '' : 'none';
   const v = t.svcs[bk.svc];
   const d = dayDate(bk.day);
-  $('sS').textContent = v ? v[0] : '–';
+  $('sS').textContent = v ? v[0] + ' · ' + t.omr(v[2]) : '–';
+  document.querySelectorAll('#sDl .xl').forEach((n) => n.remove());
+  const after = $('sS');
+  t.extras.slice().reverse().forEach((e, ri) => { const i = t.extras.length - 1 - ri; if (!bk.x[i]) return;
+    const dt = document.createElement('dt'); dt.className = 'xl'; dt.textContent = '+ ' + e[0];
+    const dd = document.createElement('dd'); dd.className = 'xl x'; dd.textContent = t.omr(e[2]);
+    after.after(dt, dd); });
   $('sW').textContent = bk.time ? \`\${bk.day === 0 ? t.today : t.week[d.getDay()]} \${d.getDate()}/\${d.getMonth() + 1} · \${bk.time}\` : '–';
   $('sP').textContent = bk.pay === 'card' ? t.payCard : t.payShop;
-  $('sT').textContent = v ? t.omr(v[2]) : '–';
-  $('confirm').textContent = bk.pay === 'card' && v ? t.payNow(t.omr(v[2])) : t.bookShop;
-  $('apay').textContent = ' Pay' + (v ? ' ' + t.omr(v[2]) : '');
+  $('sT').textContent = v ? t.omr(total(t)) : '–';
+  $('confirm').textContent = bk.pay === 'card' && v ? t.payNow(t.omr(total(t))) : t.bookShop;
+  $('apay').textContent = ' Pay' + (v ? ' ' + t.omr(total(t)) : '');
 }
 document.querySelector('.book').addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b || b.disabled) return;
   if (b.dataset.svc) bk.svc = +b.dataset.svc;
+  else if (b.dataset.x) bk.x[+b.dataset.x] = !bk.x[+b.dataset.x];
   else if (b.dataset.day) { bk.day = +b.dataset.day; }
   else if (b.dataset.time) bk.time = b.dataset.time;
   else if (b.dataset.pay) bk.pay = b.dataset.pay;
@@ -380,14 +412,15 @@ function book(viaApplePay) {
   }
   const ref = 'CW-B' + String(Math.floor(Math.random() * 90000) + 10000);
   $('okRef').textContent = ref;
-  $('okT').textContent = t.okText($('sS').textContent, $('sW').textContent) + ' ' + (bk.pay === 'card' ? t.paidCard : t.payLater) + ' · ' + $('sT').textContent;
+  const what = [t.svcs[bk.svc][0]].concat(t.extras.filter((e, i) => bk.x[i]).map((e) => e[0])).join(' + ');
+  $('okT').textContent = t.okText(what, $('sW').textContent) + ' ' + (bk.pay === 'card' ? t.paidCard : t.payLater) + ' · ' + $('sT').textContent;
   $('sumBody').style.display = 'none'; $('ok').style.display = 'block';
   window.__userAt = Date.now(); window.cardStamp && window.cardStamp();
   if (innerWidth < 860) $('sum').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 $('confirm').onclick = () => book(false);
 $('apay').onclick = () => book(true);
-$('again').onclick = () => { bk.svc = -1; bk.time = ''; $('ok').style.display = 'none'; $('sumBody').style.display = ''; renderBooking(); };
+$('again').onclick = () => { bk.svc = -1; bk.time = ''; bk.x = [false, false]; $('ok').style.display = 'none'; $('sumBody').style.display = ''; renderBooking(); };
 const _render = render;
 render = function () { _render(); renderBooking(); };
 
