@@ -24,7 +24,9 @@ try {
 
 if (renderer) {
   document.documentElement.classList.add('gl-on');
-  renderer.setPixelRatio(Math.min(devicePixelRatio, LOW ? 1.5 : 2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, LOW ? 1.75 : 2));
+  // Phones: plain materials, no bloom pass, fewer bubbles. Desktop gets the full look.
+  const Mat = LOW ? THREE.MeshStandardMaterial : THREE.MeshPhysicalMaterial;
   renderer.toneMapping = THREE.NoToneMapping; // keeps the background exactly the page blue
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
@@ -132,16 +134,16 @@ if (renderer) {
   const CW = 3.4, CH = CW * H / W, CD = 0.07;
   const card = new THREE.Group(); scene.add(card);
   const body = new THREE.Mesh(new RoundedBoxGeometry(CW, CH, CD, 4, 0.16),
-    new THREE.MeshPhysicalMaterial({ color: 0x1a39c4, roughness: 0.4, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.15, envMapIntensity: 0.5 }));
+    new Mat({ color: 0x1a39c4, roughness: 0.4, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.15, envMapIntensity: 0.5 }));
   card.add(body);
   // Face shows the pass colours exactly; a thin glossy layer on top catches the light.
   const faceMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, toneMapped: false, fog: false });
   const faceMesh = new THREE.Mesh(new THREE.PlaneGeometry(CW, CH), faceMat);
   faceMesh.position.z = CD / 2 + 0.002; card.add(faceMesh);
-  const gloss = new THREE.Mesh(new RoundedBoxGeometry(CW, CH, 0.001, 2, 0.15), new THREE.MeshPhysicalMaterial({ color: 0x000000, roughness: 0.12, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.05, transparent: true, opacity: 0.18, envMapIntensity: 1.2, depthWrite: false }));
+  const gloss = new THREE.Mesh(new RoundedBoxGeometry(CW, CH, 0.001, 2, 0.15), new Mat({ color: 0x000000, roughness: 0.12, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.05, transparent: true, opacity: 0.18, envMapIntensity: 1.2, depthWrite: false }));
   gloss.position.z = CD / 2 + 0.006; card.add(gloss);
   // back of the card: plain blue with a faint droplet
-  const backMesh = new THREE.Mesh(new THREE.PlaneGeometry(CW, CH), new THREE.MeshPhysicalMaterial({ color: 0x1733b8, roughness: 0.4, clearcoat: 1 }));
+  const backMesh = new THREE.Mesh(new THREE.PlaneGeometry(CW, CH), new Mat({ color: 0x1733b8, roughness: 0.4, clearcoat: 1 }));
   backMesh.rotation.y = Math.PI; backMesh.position.z = -CD / 2 - 0.002; card.add(backMesh);
   // soft shadow under the card
   const sh = document.createElement('canvas'); sh.width = sh.height = 128;
@@ -158,7 +160,7 @@ if (renderer) {
   // ---------- water drop ----------
   const prof = [];
   for (let i = 0; i <= 16; i++) { const t = i / 16, a = t * Math.PI; prof.push(new THREE.Vector2(Math.sin(a) * 0.17 * Math.pow(t, 0.6), -Math.cos(a) * 0.2 + 0.14 * Math.pow(1 - t, 3))); }
-  const dropMat = new THREE.MeshPhysicalMaterial({ color: 0xcfe0ff, roughness: 0.02, metalness: 0, transmission: LOW ? 0 : 0.9, thickness: 0.3, ior: 1.33, clearcoat: 1, transparent: true, opacity: LOW ? 0.85 : 1, emissive: 0x4f74ff, emissiveIntensity: 0.15, envMapIntensity: 0.8 });
+  const dropMat = new Mat({ color: 0xcfe0ff, roughness: 0.02, metalness: 0, transmission: LOW ? 0 : 0.9, thickness: 0.3, ior: 1.33, clearcoat: 1, transparent: true, opacity: LOW ? 0.85 : 1, emissive: 0x4f74ff, emissiveIntensity: 0.15, envMapIntensity: 0.8 });
   const dropMesh = new THREE.Mesh(new THREE.LatheGeometry(prof, 24), dropMat);
   dropMesh.visible = false; scene.add(dropMesh);
 
@@ -176,8 +178,10 @@ if (renderer) {
   const spray = new THREE.Points(pGeo, pMat); card.add(spray);
 
   // ---------- soap bubbles ----------
-  const NB = LOW ? 14 : 30;
-  const bubMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0, metalness: 0, transparent: true, opacity: 0.12, envMapIntensity: 0.6, iridescence: 1, iridescenceIOR: 1.3, iridescenceThicknessRange: [200, 800], clearcoat: 1, depthWrite: false, side: THREE.DoubleSide });
+  const NB = LOW ? 9 : 30;
+  const bubMat = LOW
+    ? new THREE.MeshStandardMaterial({ color: 0xdfe8ff, roughness: 0.1, metalness: 0.3, transparent: true, opacity: 0.18, depthWrite: false })
+    : new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0, metalness: 0, transparent: true, opacity: 0.12, envMapIntensity: 0.6, iridescence: 1, iridescenceIOR: 1.3, iridescenceThicknessRange: [200, 800], clearcoat: 1, depthWrite: false, side: THREE.DoubleSide });
   const bubbles = new THREE.InstancedMesh(new THREE.SphereGeometry(1, LOW ? 16 : 28, LOW ? 12 : 20), bubMat, NB);
   const bub = Array.from({ length: NB }, (_, i) => ({
     x: (Math.random() - 0.5) * 8, y: (Math.random() - 0.5) * 9, z: -2.5 + Math.random() * 4.2,
@@ -187,11 +191,13 @@ if (renderer) {
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), v3 = new THREE.Vector3(), sc = new THREE.Vector3();
 
   // ---------- post ----------
-  const composer = new EffectComposer(renderer);
+  const composer = LOW ? null : new EffectComposer(renderer);
+  if (composer) {
   composer.addPass(new RenderPass(scene, camera));
   const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.22, 0.5, 0.97);
   composer.addPass(bloom);
   composer.addPass(new OutputPass());
+  }
 
   // ---------- state & timeline ----------
   const anim = { drop: null, splash: -1, dip: 0, spin: -1 };
@@ -211,6 +217,7 @@ if (renderer) {
   // pointer lean
   const lean = { x: 0, y: 0, tx: 0, ty: 0 };
   addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'touch') return; // don't jolt the card while the page scrolls
     const r = canvas.getBoundingClientRect();
     lean.tx = THREE.MathUtils.clamp(((e.clientX - r.left) / r.width - 0.5) * 2, -1.2, 1.2);
     lean.ty = THREE.MathUtils.clamp(((e.clientY - r.top) / r.height - 0.5) * 2, -1.2, 1.2);
@@ -219,12 +226,12 @@ if (renderer) {
   // auto demo: keeps stamping while nobody is pressing the buttons
   let nextAuto = 2.2, holdUntil = 0;
   const clock = new THREE.Clock();
-  let time = 0, running = true, visible = true;
+  let time = 0, running = true, visible = true, lastSpark = 0;
 
   function resize() {
     const w = canvas.clientWidth, h = canvas.clientHeight;
     if (!w || !h) return;
-    renderer.setSize(w, h, false); composer.setSize(w, h);
+    renderer.setSize(w, h, false); if (composer) composer.setSize(w, h);
     camera.aspect = w / h;
     camera.position.z = w / h < 0.8 ? 11.6 : 11.5;
     camera.updateProjectionMatrix();
@@ -285,7 +292,7 @@ if (renderer) {
     }
     anim.dip = Math.max(0, anim.dip - dt * 2.2);
     // free-wash sparkle pulse
-    if (shown >= 9) { sparkle = 0.5 + 0.5 * Math.sin(time * 4); drawFace(); }
+    if (shown >= 9 && time - lastSpark > (LOW ? 0.2 : 0.08)) { lastSpark = time; sparkle = 0.5 + 0.5 * Math.sin(time * 4); drawFace(); }
     // reset spin
     let spinY = 0;
     if (anim.spin >= 0) {
@@ -316,7 +323,7 @@ if (renderer) {
     bubbles.instanceMatrix.needsUpdate = true;
     rim.position.x = -4 + Math.sin(time * 0.4) * 1.5;
 
-    composer.render();
+    if (composer) composer.render(); else renderer.render(scene, camera);
   }
   drawFace();
   tick();
