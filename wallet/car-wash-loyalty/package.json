@@ -1,0 +1,20 @@
+{
+  "name": "car-wash-loyalty",
+  "version": "1.0.0",
+  "description": "Apple Wallet loyalty stamp card with auto-updates",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "sample": "node scripts/sample-pass.js",
+    "preview": "node scripts/preview.js"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "node-forge": "^1.4.3"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22.5"
+  }
+}
