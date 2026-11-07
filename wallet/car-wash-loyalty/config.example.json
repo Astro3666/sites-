@@ -11,6 +11,7 @@
     "location": null,
     "colors": { "background": "#1D3FD1", "foreground": "#FFFFFF", "label": "#DCE3FF" }
   },
+  "credit": { "en": "Mazen", "ar": "مازن" },
   "program": {
     "stampsForReward": 10,
     "termsEn": "One stamp per paid wash. The free wash is a standard wash. Card has no cash value.",

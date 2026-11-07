@@ -75,6 +75,7 @@ function passJson(cfg, member) {
         ...(b.address ? [{ key: 'address', label: 'address_label', value: 'address_value' }] : []),
         ...(b.mapsUrl ? [{ key: 'map', label: 'map_label', value: b.mapsUrl }] : []),
         { key: 'terms', label: 'terms_label', value: 'terms_value' },
+        { key: 'rights', label: 'rights_label', value: 'rights_value' },
       ],
     },
     barcodes: [
@@ -113,6 +114,8 @@ function localisations(cfg, member, stamps) {
       terms_label: 'Terms',
       terms_value: cfg.program.termsEn,
       nearby: `You're near ${b.nameEn}. Show your card for a stamp.`,
+      rights_label: 'Card design',
+      rights_value: `© ${new Date().getFullYear()} ${cfg.credit.en}. All rights reserved.`,
     }),
     'ar.lproj/pass.strings': stringsFile({
       loyalty_description: `بطاقة ولاء ${b.nameAr}`,
@@ -135,6 +138,8 @@ function localisations(cfg, member, stamps) {
       terms_label: 'الشروط',
       terms_value: cfg.program.termsAr,
       nearby: `أنت قريب من ${b.nameAr}. اعرض بطاقتك للحصول على ختم.`,
+      rights_label: 'تصميم البطاقة',
+      rights_value: `© ${new Date().getFullYear()} ${cfg.credit.ar}. جميع الحقوق محفوظة.`,
     }),
   };
 }

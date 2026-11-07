@@ -9,6 +9,7 @@ function loadConfig() {
   const file = process.env.CONFIG || path.join(ROOT, 'config.json');
   const cfg = JSON.parse(fs.readFileSync(file, 'utf8'));
   // Environment overrides for secrets, so they never need to live in the file.
+  cfg.credit = { en: 'Mazen', ar: 'مازن', ...(cfg.credit || {}) };
   if (process.env.PUBLIC_URL) cfg.server.publicUrl = process.env.PUBLIC_URL;
   if (process.env.STAFF_PIN) cfg.server.staffPin = process.env.STAFF_PIN;
   if (process.env.PORT) cfg.server.port = Number(process.env.PORT);

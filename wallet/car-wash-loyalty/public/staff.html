@@ -33,6 +33,7 @@
   ul { list-style: none; padding: 0; margin: 0; }
   li { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
   li span { color: var(--muted); }
+  .rights { padding: 8px 16px 24px; font-size: 12px; color: var(--muted); text-align: center; }
 </style>
 </head>
 <body>
@@ -74,6 +75,8 @@
     </div>
   </section>
 </main>
+<footer class="rights">Card and website design © {{YEAR}} {{CREDIT_EN}}. All rights reserved.<br><span dir="rtl">تصميم البطاقة والموقع © {{YEAR}} {{CREDIT_AR}}. جميع الحقوق محفوظة.</span></footer>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
