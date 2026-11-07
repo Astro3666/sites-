@@ -71,11 +71,28 @@ html[lang=ar] .lab{letter-spacing:0;font-size:11px}
 .toast .ic svg{width:26px;height:26px}
 .phone{position:relative}
 .dev{position:relative;width:min(420px,100%);display:flex;justify-content:center}
-#scene{display:none;width:100%;height:600px;touch-action:pan-y;cursor:grab}
+#scene{display:none;width:100%;height:600px;touch-action:pan-y}
 html.gl-on #scene{display:block}
 html.gl-on .phone{display:none}
 html.gl-on .toast{inset-inline:auto;width:300px;top:6px}
-@media (max-width:860px){#scene{height:520px}}
+@media (max-width:860px){#scene{height:440px}}
+.mcta{display:none}
+@media (max-width:860px){
+  .hero .wrap>div:first-child{display:contents}
+  .hero h1{order:1}.hero .lead{order:2;margin-bottom:14px;font-size:17px}.hero .price{order:3;margin-bottom:0}.hero .stage{order:4;gap:10px}.hero form{order:5;max-width:none}
+  .hero .wrap{gap:0;padding-top:28px;padding-bottom:40px}
+  .hero h1{margin-bottom:12px}.hero .stage{margin:4px 0 18px}
+  .mcta{display:flex;position:fixed;z-index:30;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));
+    align-items:center;justify-content:space-between;gap:12px;background:var(--ink);color:#fff;border-radius:16px;padding:10px 10px 10px 16px;
+    box-shadow:0 10px 30px rgba(15,23,42,.35);text-decoration:none;transition:transform .3s,opacity .3s}
+  .mcta.off{transform:translateY(140%);opacity:0;pointer-events:none}
+  .mcta small{display:block;opacity:.7;font-size:12px}
+  .mcta b{background:var(--blue);border-radius:11px;padding:10px 16px;font-size:15px;white-space:nowrap}
+  footer{padding-bottom:96px}
+  .days{scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}.days .opt{scroll-snap-align:start}
+  section.book,section.how{padding:48px 0}
+  nav{backdrop-filter:none;-webkit-backdrop-filter:none;background:#fff}
+}
 .demo{display:flex;gap:10px}
 .demo button{font:inherit;font-weight:600;padding:11px 18px;border-radius:999px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff;cursor:pointer}
 .demo button.w{background:#fff;color:var(--blue);border-color:#fff}
@@ -251,11 +268,12 @@ html[lang=ar] .sub{letter-spacing:0}
 </div></section>
 
 <footer><div class="wrap"><span data-t="foot"></span></div></footer>
+<a class="mcta" id="mcta" href="#book"><span><span data-t="bookNav"></span><small data-t="from"></small></span><b data-t="bookGo"></b></a>
 
 <script>
 const STRIPS = ${JSON.stringify(strips)};
 const T = {
-  en: { bookNav: 'Book a wash', bookH: 'Book your wash and pay online', b1: 'Choose your car', xH: 'Extras', pSedan: 'Sedan 1.500 OMR', pSuv: 'SUV 2.000 OMR', b2: 'Pick a day and time', b3: 'Your details', b4: 'Payment',
+  en: { bookNav: 'Book a wash', bookH: 'Book your wash and pay online', b1: 'Choose your car', from: 'From 1.500 OMR · pay online', bookGo: 'Book now', xH: 'Extras', pSedan: 'Sedan 1.500 OMR', pSuv: 'SUV 2.000 OMR', b2: 'Pick a day and time', b3: 'Your details', b4: 'Payment',
     carL: 'Car (model and plate)', carP: 'e.g. Toyota Camry · 12345 A', payCard: 'Pay online', payCardS: 'Card or Apple Pay', payShop: 'Pay at the shop', payShopS: 'Cash or card on arrival',
     cardN: 'Card number', cardE: 'Expiry', cardC: 'CVV', secure: 'Payments are processed securely by the payment provider. Card details never touch this website.',
     sumH: 'Your booking', sService: 'Car wash', sWhen: 'When', sPay: 'Payment', sTotal: 'Total', stampPerk: 'Every booked wash adds a stamp to your Wallet card automatically.',
@@ -277,7 +295,7 @@ const T = {
     foot: 'Loyalty card and website design © ' + new Date().getFullYear() + ' Mazen. All rights reserved.', demoNote: 'Demo preview: the real card downloads once the service is live.',
     left: (n) => n === 0 ? 'Your free wash is ready!' : n === 1 ? '1 more wash until your free one' : n + ' more washes until your free one',
     toast: (s) => 'You now have ' + s + '/10 stamps', free: 'Your free wash is ready!', lang: 'العربية', you: 'SALIM' },
-  ar: { bookNav: 'احجز غسلة', bookH: 'احجز غسلتك وادفع أونلاين', b1: 'اختر نوع سيارتك', xH: 'إضافات', pSedan: 'سيدان 1.500 ر.ع', pSuv: 'دفع رباعي 2.000 ر.ع', b2: 'اختر اليوم والوقت', b3: 'بياناتك', b4: 'الدفع',
+  ar: { bookNav: 'احجز غسلة', bookH: 'احجز غسلتك وادفع أونلاين', b1: 'اختر نوع سيارتك', from: 'من 1.500 ر.ع · ادفع أونلاين', bookGo: 'احجز الآن', xH: 'إضافات', pSedan: 'سيدان 1.500 ر.ع', pSuv: 'دفع رباعي 2.000 ر.ع', b2: 'اختر اليوم والوقت', b3: 'بياناتك', b4: 'الدفع',
     carL: 'السيارة (النوع والرقم)', carP: 'مثال: تويوتا كامري · 12345 أ', payCard: 'ادفع أونلاين', payCardS: 'بطاقة أو Apple Pay', payShop: 'ادفع في المحل', payShopS: 'نقداً أو بالبطاقة عند الوصول',
     cardN: 'رقم البطاقة', cardE: 'الانتهاء', cardC: 'الرمز', secure: 'تتم معالجة الدفع بأمان عبر مزود الدفع. بيانات البطاقة لا تمر عبر هذا الموقع.',
     sumH: 'حجزك', sService: 'غسيل السيارة', sWhen: 'الموعد', sPay: 'الدفع', sTotal: 'المجموع', stampPerk: 'كل غسلة محجوزة تضيف ختماً لبطاقتك في Wallet تلقائياً.',
@@ -421,6 +439,10 @@ function book(viaApplePay) {
 $('confirm').onclick = () => book(false);
 $('apay').onclick = () => book(true);
 $('again').onclick = () => { bk.svc = -1; bk.time = ''; bk.x = [false, false]; $('ok').style.display = 'none'; $('sumBody').style.display = ''; renderBooking(); };
+const mcta = $('mcta');
+const seen = new Set();
+const io = new IntersectionObserver((es) => { es.forEach((e) => (e.isIntersecting ? seen.add(e.target) : seen.delete(e.target))); mcta.classList.toggle('off', seen.size > 0); });
+io.observe(document.getElementById('book')); io.observe(document.getElementById('f'));
 const _render = render;
 render = function () { _render(); renderBooking(); };
 
