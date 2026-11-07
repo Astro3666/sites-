@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{NAME_EN}} staff</title>
+<meta name="theme-color" content="#0F172A">
+<style>
+  :root { --blue: {{BG}}; --ink: #0F172A; --muted: #64748B; --line: #E2E8F0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #F1F5F9; color: var(--ink); font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Tahoma, sans-serif; }
+  header { background: var(--ink); color: #fff; padding: 14px 16px; font-weight: 600; }
+  main { max-width: 520px; margin: 0 auto; padding: 16px; }
+  .box { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 14px; box-shadow: 0 1px 2px rgba(15,23,42,.06); }
+  input { width: 100%; font: inherit; font-size: 18px; padding: 13px; border: 1px solid var(--line); border-radius: 12px; }
+  button { font: inherit; font-weight: 600; font-size: 17px; padding: 14px; border-radius: 12px; border: 0; cursor: pointer; }
+  .primary { background: var(--blue); color: #fff; width: 100%; }
+  .row { display: flex; gap: 10px; margin-top: 10px; }
+  .row > * { flex: 1; }
+  .ghost { background: #E2E8F0; color: var(--ink); }
+  .reward { background: #16A34A; color: #fff; width: 100%; margin-top: 10px; }
+  video { width: 100%; border-radius: 12px; background: #000; display: none; margin-top: 10px; }
+  .card { background: var(--blue); color: #fff; border-radius: 16px; padding: 16px; }
+  .card .top { display: flex; justify-content: space-between; align-items: baseline; }
+  .card .big { font-size: 34px; font-weight: 700; }
+  .dots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 12px 0; }
+  .dots i { aspect-ratio: 1; border-radius: 50%; border: 2px dashed rgba(255,255,255,.6); }
+  .dots i.on { background: #fff; border: 0; }
+  .msg { min-height: 1.4em; margin-top: 10px; color: var(--muted); }
+  .msg.err { color: #B91C1C; }
+  .msg.ok { color: #15803D; }
+  .hidden { display: none; }
+  ul { list-style: none; padding: 0; margin: 0; }
+  li { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+  li span { color: var(--muted); }
+</style>
+</head>
+<body>
+<header>{{NAME_EN}} · Staff</header>
+<main>
+  <section id="login" class="box hidden">
+    <p>Enter the staff PIN.</p>
+    <input id="pin" type="password" inputmode="numeric" autocomplete="current-password">
+    <button class="primary" style="margin-top:10px" id="loginBtn">Log in</button>
+    <div class="msg err" id="loginMsg"></div>
+  </section>
+
+  <section id="app" class="hidden">
+    <div class="box">
+      <button class="primary" id="scanBtn">Scan customer card</button>
+      <video id="video" playsinline muted></video>
+      <div class="row">
+        <input id="mid" placeholder="or type member ID, e.g. CW-04821" autocapitalize="characters">
+      </div>
+      <div class="row"><button class="ghost" id="findBtn">Find card</button></div>
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <div class="box hidden" id="memberBox">
+      <div class="card">
+        <div class="top"><div><div id="mName" style="font-size:20px;font-weight:600"></div><div id="mId" style="opacity:.85"></div></div>
+          <div class="big" id="mCount"></div></div>
+        <div class="dots" id="mDots"></div>
+        <div id="mNote" style="opacity:.9"></div>
+      </div>
+      <button class="primary" style="margin-top:12px" id="stampBtn">+1 stamp</button>
+      <button class="reward hidden" id="redeemBtn">Give free wash (reset card)</button>
+      <div class="row"><button class="ghost" id="undoBtn">Undo last stamp</button></div>
+    </div>
+
+    <div class="box">
+      <b>Recent cards</b>
+      <ul id="list"></ul>
+    </div>
+  </section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+let current = null, stream = null;
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...opts });
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401 && !path.endsWith('/login')) { show('login'); throw new Error('Please log in.'); }
+  if (!r.ok) { const e = new Error(j.error || 'Error'); e.data = j; throw e; }
+  return j;
+}
+function show(which) { $('login').classList.toggle('hidden', which !== 'login'); $('app').classList.toggle('hidden', which !== 'app'); }
+function say(text, kind = '') { $('msg').textContent = text; $('msg').className = 'msg ' + kind; }
+
+function render(m) {
+  current = m;
+  $('memberBox').classList.remove('hidden');
+  $('mName').textContent = m.name;
+  $('mId').textContent = m.memberId + (m.phone ? ' · ' + m.phone : '');
+  $('mCount').textContent = `${m.stamps}/${m.total}`;
+  $('mDots').innerHTML = Array.from({ length: m.total }, (_, i) => `<i class="${i < m.stamps ? 'on' : ''}"></i>`).join('');
+  const left = m.total - 1 - m.stamps;
+  $('mNote').textContent = m.freeReady ? 'Free wash ready. Give it and reset the card.' : `${left} more until the free wash. Free washes used: ${m.rewardsRedeemed}`;
+  $('stampBtn').classList.toggle('hidden', m.freeReady);
+  $('redeemBtn').classList.toggle('hidden', !m.freeReady);
+}
+
+async function find(id) {
+  id = String(id || '').trim().toUpperCase();
+  if (!id) return;
+  try { render(await api('/api/staff/member?id=' + encodeURIComponent(id))); say(''); }
+  catch (e) { say(e.message, 'err'); }
+}
+
+async function act(kind) {
+  if (!current) return;
+  try {
+    const j = await api(`/api/staff/member/${encodeURIComponent(current.memberId)}/${kind}`, { method: 'POST' });
+    render(j.member);
+    const label = { stamp: 'Stamp added', undo: 'Stamp removed', redeem: 'Free wash given, card reset' }[kind];
+    say(`${label}. ${j.pushed ? 'Customer\'s Wallet card is updating.' : 'Card will update next time their phone checks.'}`, 'ok');
+    loadList();
+  } catch (e) { if (e.data?.member) render(e.data.member); say(e.message, 'err'); }
+}
+
+async function loadList() {
+  const rows = await api('/api/staff/members');
+  $('list').innerHTML = rows.slice(0, 30).map((m) =>
+    `<li data-id="${m.memberId}"><b>${m.name.replace(/[<&>]/g, '')}</b><span>${m.memberId} · ${m.stamps}/${m.total}</span></li>`).join('') || '<li><span>No cards yet</span></li>';
+}
+$('list').addEventListener('click', (e) => { const li = e.target.closest('li[data-id]'); if (li) find(li.dataset.id); });
+
+async function scan() {
+  const v = $('video');
+  if (stream) return stopScan();
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+  } catch { return say('Camera not available. Type the member ID instead.', 'err'); }
+  v.srcObject = stream; v.style.display = 'block'; await v.play();
+  $('scanBtn').textContent = 'Stop scanning';
+  const detector = 'BarcodeDetector' in window ? new BarcodeDetector({ formats: ['qr_code'] }) : null;
+  const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const tick = async () => {
+    if (!stream) return;
+    let text = null;
+    try {
+      if (detector) { const c = await detector.detect(v); text = c[0]?.rawValue; }
+      else if (window.jsQR && v.videoWidth) {
+        canvas.width = v.videoWidth; canvas.height = v.videoHeight; ctx.drawImage(v, 0, 0);
+        text = jsQR(ctx.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height)?.data;
+      }
+    } catch {}
+    if (text) { stopScan(); $('mid').value = text; find(text); if (navigator.vibrate) navigator.vibrate(80); }
+    else requestAnimationFrame(tick);
+  };
+  tick();
+}
+function stopScan() {
+  stream?.getTracks().forEach((t) => t.stop()); stream = null;
+  $('video').style.display = 'none'; $('scanBtn').textContent = 'Scan customer card';
+}
+
+$('scanBtn').onclick = scan;
+$('findBtn').onclick = () => find($('mid').value);
+$('mid').addEventListener('keydown', (e) => { if (e.key === 'Enter') find($('mid').value); });
+$('stampBtn').onclick = () => act('stamp');
+$('undoBtn').onclick = () => { if (confirm('Remove one stamp?')) act('undo'); };
+$('redeemBtn').onclick = () => act('redeem');
+$('loginBtn').onclick = async () => {
+  try { await api('/api/staff/login', { method: 'POST', body: JSON.stringify({ pin: $('pin').value }) }); show('app'); loadList(); }
+  catch (e) { $('loginMsg').textContent = e.message; }
+};
+$('pin').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('loginBtn').click(); });
+
+api('/api/staff/me').then(() => { show('app'); loadList(); }).catch(() => show('login'));
+</script>
+</body>
+</html>

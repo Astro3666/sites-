@@ -1,0 +1,32 @@
+{
+  "business": {
+    "slug": "car-wash",
+    "nameEn": "Car Wash",
+    "nameAr": "مغسلة سيارات",
+    "phone": "",
+    "whatsapp": "",
+    "address": "",
+    "addressAr": "",
+    "mapsUrl": "https://maps.app.goo.gl/moCwUzh9YfDi1QeZ9",
+    "location": null,
+    "colors": { "background": "#1D3FD1", "foreground": "#FFFFFF", "label": "#DCE3FF" }
+  },
+  "program": {
+    "stampsForReward": 10,
+    "termsEn": "One stamp per paid wash. The free wash is a standard wash. Card has no cash value.",
+    "termsAr": "ختم واحد لكل غسلة مدفوعة. الغسلة المجانية غسلة عادية. البطاقة ليس لها قيمة نقدية."
+  },
+  "apple": {
+    "passTypeIdentifier": "pass.com.example.carwash",
+    "teamIdentifier": "ABCDE12345",
+    "p12": "certs/pass.p12",
+    "p12Password": "",
+    "wwdr": "certs/AppleWWDRCAG4.cer"
+  },
+  "server": {
+    "publicUrl": "https://loyalty.example.com",
+    "port": 3000,
+    "staffPin": "change-me",
+    "database": "data/loyalty.db"
+  }
+}

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{NAME_EN}} loyalty card</title>
+<meta name="theme-color" content="{{BG}}">
+<style>
+  :root { --blue: {{BG}}; --ink: #0F172A; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: var(--blue); color: #fff; font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Tahoma, sans-serif; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
+  .card { width: 100%; max-width: 420px; }
+  .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .brand svg { width: 52px; height: 52px; flex: none; }
+  .brand b { display: block; font-size: 26px; line-height: 1.1; }
+  .brand span { opacity: .85; font-size: 18px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  p.sub { margin: 0 0 22px; opacity: .85; }
+  .dots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; background: rgba(255,255,255,.12); padding: 16px; border-radius: 16px; margin-bottom: 22px; }
+  .dots i { aspect-ratio: 1; border-radius: 50%; border: 2px dashed rgba(255,255,255,.6); }
+  .dots i.on { background: #fff; border: 0; }
+  label { display: block; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; margin: 14px 0 6px; opacity: .9; }
+  input { width: 100%; font: inherit; font-size: 17px; padding: 14px; border-radius: 12px; border: 0; color: var(--ink); }
+  button { margin-top: 20px; width: 100%; font: inherit; font-weight: 600; font-size: 17px; padding: 15px; border-radius: 12px; border: 0; background: #fff; color: var(--blue); cursor: pointer; }
+  button[disabled] { opacity: .6; }
+  .err { color: #FECACA; min-height: 1.4em; margin-top: 10px; }
+  .done { display: none; text-align: center; }
+  .done a { display: inline-block; margin-top: 18px; }
+  .done img { height: 48px; }
+  .ar { direction: rtl; text-align: right; margin-top: 28px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.2); opacity: .9; font-size: 15px; }
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="brand">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><path fill="#fff" d="M28 6C28 6 10 26 10 40a18 18 0 0 0 36 0C46 26 28 6 28 6z"/><path fill="#fff" d="M51 6q1.7 4.3 6 6-4.3 1.7-6 6-1.7-4.3-6-6 4.3-1.7 6-6zM57 20.8q.9 2.3 3.2 3.2-2.3.9-3.2 3.2-.9-2.3-3.2-3.2 2.3-.9 3.2-3.2z"/><g transform="translate(28 41) scale(.78)" fill="{{BG}}"><path d="M-8-3-6-9q.6-1.6 2.4-1.6h7.2Q5.4-10.6 6-9l2 6z"/><rect x="-11" y="-4" width="22" height="9" rx="3"/><rect x="-9.5" y="4" width="4" height="4.5" rx="1.2"/><rect x="5.5" y="4" width="4" height="4.5" rx="1.2"/></g></svg>
+    <div><b>{{NAME_EN}}</b><span>{{NAME_AR}}</span></div>
+  </div>
+
+  <form id="f">
+    <h1>Wash {{PAID}} times, your {{TOTAL}}th is free</h1>
+    <p class="sub">Get your stamp card in Apple Wallet. It updates by itself every time you wash.</p>
+    <div class="dots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <label for="name">Your name / الاسم</label>
+    <input id="name" name="name" autocomplete="given-name" required maxlength="40">
+    <label for="phone">Phone / الهاتف</label>
+    <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+968" required>
+    <button id="go">Add to Apple Wallet</button>
+    <div class="err" id="err" role="alert"></div>
+    <div class="ar">احصل على بطاقة الأختام في Apple Wallet. اغسل {{PAID}} مرات والغسلة {{TOTAL}} مجاناً.</div>
+  </form>
+
+  <div class="done" id="done">
+    <h1>Your card is ready</h1>
+    <p class="sub">If it didn't open, tap below. Show the code at the counter on every wash.</p>
+    <a id="again" href="#"><img alt="Add to Apple Wallet" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='48'%3E%3Crect width='220' height='48' rx='10' fill='%23000'/%3E%3Ctext x='110' y='30' fill='%23fff' font-family='-apple-system,Helvetica' font-size='17' font-weight='600' text-anchor='middle'%3EAdd to Apple Wallet%3C/text%3E%3C/svg%3E"></a>
+  </div>
+</main>
+<script>
+  const f = document.getElementById('f'), err = document.getElementById('err'), go = document.getElementById('go');
+  f.addEventListener('submit', async (e) => {
+    e.preventDefault(); err.textContent = ''; go.disabled = true;
+    try {
+      const r = await fetch('/api/join', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: f.name.value, phone: f.phone.value }) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || 'Something went wrong.');
+      document.getElementById('again').href = j.passUrl;
+      f.style.display = 'none'; document.getElementById('done').style.display = 'block';
+      location.href = j.passUrl;
+    } catch (x) { err.textContent = x.message; } finally { go.disabled = false; }
+  });
+</script>
+</body>
+</html>
