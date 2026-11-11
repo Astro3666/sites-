@@ -3,6 +3,7 @@
 // in the business's accent colour.
 const { Resvg } = require('@resvg/resvg-js');
 
+const ASSETS = path.join(__dirname, '..', 'assets');
 const WHITE = '#FFFFFF';
 const ORANGE = '#FF5500';
 
