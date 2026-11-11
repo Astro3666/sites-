@@ -8,11 +8,11 @@ const art = require('../src/art');
 
 const cfg = loadConfig();
 const stamps = Number(process.argv[2] ?? 4);
-const member = { serial: 's', member_id: 'CW-04821', auth_token: 't', rewards_redeemed: 0, stamps, updated_at: 0 };
+const member = { serial: 's', member_id: 'RP-04821', auth_token: 't', rewards_redeemed: 0, stamps, updated_at: 0 };
 const { pj, total } = passJson(cfg, { ...member, name: 'SALIM' });
 const bg = cfg.business.colors.background;
-const strips = art.stripImages(bg, Math.min(stamps, total - 1), total);
-const logo = art.baseImages(bg)['logo@3x.png'];
+const strips = art.stripImages(bg, Math.min(stamps, total - 1), total, cfg.business.colors.accent);
+const logo = art.baseImages()['logo@3x.png'];
 const b64 = (b) => 'data:image/png;base64,' + b.toString('base64');
 
 function parseStrings(buf) {
@@ -26,7 +26,7 @@ function card(lang, name) {
   const sc = pj.storeCard, rtl = lang === 'ar';
   const strip = rtl ? strips['ar.lproj/strip@3x.png'] : strips['strip@3x.png'];
   return `<div class="pass" dir="${rtl ? 'rtl' : 'ltr'}">
-    <div class="top"><img class="logo" src="${b64(logo)}"><div class="lt">${t(pj.logoText)}</div>
+    <div class="top"><img class="logo" src="${b64(logo)}"><div class="lt"></div>
       <div class="hf"><div class="lab">${t(sc.headerFields[0].label)}</div><div class="val">${sc.headerFields[0].value}</div></div></div>
     <img class="strip" src="${b64(strip)}">
     <div class="sec"><div class="lab">${t(sc.secondaryFields[0].label)}</div><div class="v2">${t(sc.secondaryFields[0].value)}</div></div>
@@ -48,8 +48,8 @@ function qr() { // decorative placeholder pattern (Wallet draws the real QR)
 const html = `<!doctype html><meta charset="utf-8"><style>
 body{margin:0;background:#0b0b0d;display:flex;gap:40px;justify-content:center;padding:40px;font-family:-apple-system,Inter,"Noto Sans Arabic",sans-serif}
 .pass{width:340px;background:${bg};color:#fff;border-radius:14px;padding:12px 0 18px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
-.top{display:flex;align-items:center;gap:8px;padding:0 14px 10px}.logo{width:38px;height:38px}.lt{font-weight:600;font-size:18px;flex:1}
-.hf{text-align:end}.lab{font-size:10px;letter-spacing:.06em;color:#DCE3FF;font-weight:600;text-transform:uppercase}.val{font-size:22px;font-weight:500}
+.top{display:flex;align-items:center;gap:8px;padding:0 14px 10px}.logo{width:160px;height:auto}.lt{font-weight:600;font-size:18px;flex:1}
+.hf{text-align:end}.lab{font-size:10px;letter-spacing:.06em;color:${cfg.business.colors.label};font-weight:600;text-transform:uppercase}.val{font-size:22px;font-weight:500}
 .strip{width:100%;display:block}.sec{padding:12px 14px 0}.v2{font-size:16px;margin-top:2px}
 .aux{display:flex;justify-content:space-between;padding:12px 14px 0}.end{text-align:end}
 .qr{text-align:center;margin-top:18px}.qrbox{display:inline-block;background:#fff;padding:10px;border-radius:10px;line-height:0}.alt{font-size:12px;margin-top:8px;opacity:.9}

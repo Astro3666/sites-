@@ -1,15 +1,15 @@
 {
   "business": {
-    "slug": "car-wash",
-    "nameEn": "Car Wash",
-    "nameAr": "مغسلة سيارات",
+    "slug": "rp-car-wash",
+    "nameEn": "RP Car Wash",
+    "nameAr": "آر بي لغسيل السيارات",
     "phone": "",
     "whatsapp": "",
     "address": "",
     "addressAr": "",
     "mapsUrl": "https://maps.app.goo.gl/moCwUzh9YfDi1QeZ9",
     "location": null,
-    "colors": { "background": "#1D3FD1", "foreground": "#FFFFFF", "label": "#DCE3FF" }
+    "colors": { "background": "#111113", "foreground": "#FFFFFF", "label": "#FF7A33", "accent": "#FF5500" }
   },
   "credit": { "en": "Mazen", "ar": "مازن" },
   "program": {
@@ -18,7 +18,7 @@
     "termsAr": "ختم واحد لكل غسلة مدفوعة. الغسلة المجانية غسلة عادية. البطاقة ليس لها قيمة نقدية."
   },
   "apple": {
-    "passTypeIdentifier": "pass.com.example.carwash",
+    "passTypeIdentifier": "pass.om.rpcarwash.loyalty",
     "teamIdentifier": "ABCDE12345",
     "p12": "certs/pass.p12",
     "p12Password": "",

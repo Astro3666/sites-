@@ -6,7 +6,7 @@
 <title>{{NAME_EN}} loyalty card</title>
 <meta name="theme-color" content="{{BG}}">
 <style>
-  :root { --blue: {{BG}}; --ink: #0F172A; }
+  :root { --blue: {{BG}}; --acc: {{ACCENT}}; --ink: #0F172A; }
   * { box-sizing: border-box; }
   body { margin: 0; min-height: 100vh; background: var(--blue); color: #fff; font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Tahoma, sans-serif; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
   .card { width: 100%; max-width: 420px; }
@@ -16,12 +16,12 @@
   .brand span { opacity: .85; font-size: 18px; }
   h1 { font-size: 22px; margin: 0 0 4px; }
   p.sub { margin: 0 0 22px; opacity: .85; }
-  .dots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; background: rgba(255,255,255,.12); padding: 16px; border-radius: 16px; margin-bottom: 22px; }
+  .dots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,85,0,.35); padding: 16px; border-radius: 16px; margin-bottom: 22px; }
   .dots i { aspect-ratio: 1; border-radius: 50%; border: 2px dashed rgba(255,255,255,.6); }
-  .dots i.on { background: #fff; border: 0; }
+  .dots i.on { background: var(--acc); border: 0; }
   label { display: block; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; margin: 14px 0 6px; opacity: .9; }
-  input { width: 100%; font: inherit; font-size: 17px; padding: 14px; border-radius: 12px; border: 0; color: var(--ink); }
-  button { margin-top: 20px; width: 100%; font: inherit; font-weight: 600; font-size: 17px; padding: 15px; border-radius: 12px; border: 0; background: #fff; color: var(--blue); cursor: pointer; }
+  input { width: 100%; font: inherit; font-size: 17px; padding: 14px; border-radius: 12px; border: 1px solid #2f2f33; color: #fff; background: #0B0B0C; }
+  button { margin-top: 20px; width: 100%; font: inherit; font-weight: 600; font-size: 17px; padding: 15px; border-radius: 12px; border: 0; background: var(--acc); color: #000; cursor: pointer; }
   button[disabled] { opacity: .6; }
   .err { color: #FECACA; min-height: 1.4em; margin-top: 10px; }
   .done { display: none; text-align: center; }
@@ -34,8 +34,7 @@
 <body>
 <main class="card">
   <div class="brand">
-    <svg viewBox="0 0 64 64" aria-hidden="true"><path fill="#fff" d="M28 6C28 6 10 26 10 40a18 18 0 0 0 36 0C46 26 28 6 28 6z"/><path fill="#fff" d="M51 6q1.7 4.3 6 6-4.3 1.7-6 6-1.7-4.3-6-6 4.3-1.7 6-6zM57 20.8q.9 2.3 3.2 3.2-2.3.9-3.2 3.2-.9-2.3-3.2-3.2 2.3-.9 3.2-3.2z"/><g transform="translate(28 41) scale(.78)" fill="{{BG}}"><path d="M-8-3-6-9q.6-1.6 2.4-1.6h7.2Q5.4-10.6 6-9l2 6z"/><rect x="-11" y="-4" width="22" height="9" rx="3"/><rect x="-9.5" y="4" width="4" height="4.5" rx="1.2"/><rect x="5.5" y="4" width="4" height="4.5" rx="1.2"/></g></svg>
-    <div><b>{{NAME_EN}}</b><span>{{NAME_AR}}</span></div>
+    <img src="{{LOGO}}" alt="{{NAME_EN}}" style="height:40px;width:auto">
   </div>
 
   <form id="f">

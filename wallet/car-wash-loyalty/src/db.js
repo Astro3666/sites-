@@ -58,7 +58,7 @@ function openDb(file) {
 
   function newMemberId() {
     for (;;) {
-      const id = 'CW-' + String(crypto.randomInt(0, 100000)).padStart(5, '0');
+      const id = 'RP-' + String(crypto.randomInt(0, 100000)).padStart(5, '0');
       if (!q.byMemberId.get(id)) return id;
     }
   }
