@@ -1,0 +1,29 @@
+{
+  "slug": "rp-car-wash",
+  "publishPath": "car-wash-loyalty",
+  "domains": ["rpcarwash.com.om", "rpcarwash.com"],
+  "name": { "en": "RP Car Wash", "ar": "آر بي لغسيل السيارات" },
+  "city": { "en": "Muscat", "ar": "مسقط" },
+  "idPrefix": "RP",
+  "phone": "",
+  "whatsapp": "",
+  "address": { "en": "", "ar": "" },
+  "mapsUrl": "https://maps.app.goo.gl/moCwUzh9YfDi1QeZ9",
+  "location": null,
+  "colors": { "accent": "#FF5500", "label": "#FF7A33", "card": "#111113", "page": "#0A0A0B", "panel": "#141416" },
+  "currency": { "en": "OMR", "ar": "ر.ع" },
+  "services": [
+    { "id": "sedan", "icon": "sedan", "price": 1.5, "en": ["Sedan", "Saloon, hatchback, coupe"], "ar": ["سيدان", "صالون، هاتشباك، كوبيه"] },
+    { "id": "suv", "icon": "suv", "price": 2, "en": ["SUV", "4x4, pickup, 7-seater"], "ar": ["دفع رباعي", "4x4، بيك أب، 7 ركاب"] }
+  ],
+  "extras": [
+    { "id": "engine", "price": 1, "en": ["Engine bay & under car", "Engine bay degrease + underbody wash"], "ar": ["غسيل المحرك وأسفل السيارة", "تنظيف حجرة المحرك + غسيل أسفل السيارة"] },
+    { "id": "nano", "price": 1, "en": ["Special nano soap", "Nano-coating soap for extra shine and water beading"], "ar": ["صابون النانو الخاص", "صابون بتقنية النانو لمعان أقوى وطرد للماء"] }
+  ],
+  "hours": { "slots": ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"], "closedDays": [] },
+  "program": {
+    "stampsForReward": 10,
+    "termsEn": "One stamp per paid wash. The free wash is a standard wash. Card has no cash value.",
+    "termsAr": "ختم واحد لكل غسلة مدفوعة. الغسلة المجانية غسلة عادية. البطاقة ليس لها قيمة نقدية."
+  }
+}

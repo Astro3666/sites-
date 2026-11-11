@@ -14,7 +14,9 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 const canvas = document.getElementById('scene');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const LOW = matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 700 || (navigator.hardwareConcurrency || 8) <= 4;
-const BG = '#0A0A0B', CARD = '#141416', ORANGE = '#FF5500', LABEL = '#FF7A33';
+const BIZ = window.BIZ, TOTAL = BIZ.total, ACC_RGB = BIZ.colors.accentRgb;
+const BG = BIZ.colors.page, CARD = BIZ.colors.card, ORANGE = BIZ.colors.accent, LABEL = BIZ.colors.label;
+const ACC_HEX = parseInt(ORANGE.slice(1), 16);
 const logoImg = new Image(); logoImg.src = document.querySelector('.brand img').src;
 
 let renderer;
@@ -41,7 +43,7 @@ if (renderer) {
 
   scene.add(new THREE.HemisphereLight(0xffffff, 0x221005, 0.6));
   const key = new THREE.DirectionalLight(0xffffff, 1.2); key.position.set(3, 5, 6); scene.add(key);
-  const rim = new THREE.PointLight(0xff5500, 40, 20); rim.position.set(-4, 2, -3); scene.add(rim);
+  const rim = new THREE.PointLight(ACC_HEX, 40, 20); rim.position.set(-4, 2, -3); scene.add(rim);
 
   // ---------- the card face, drawn on a 2D canvas so it matches the real pass ----------
   const W = 340, H = 460, K = LOW ? 2.4 : 3.2; // pass points, texture scale
@@ -51,9 +53,12 @@ if (renderer) {
   const qr = document.createElement('canvas'); qr.width = qr.height = 420;
   if (window.drawQR) window.drawQR(qr, 4, 420);
   const SX = W / 375, STRIP_Y = 62;
+  // Same grid as the Wallet strip (src/art.js stampLayout).
+  const ROWS = TOTAL <= 5 ? 1 : 2, COLS = Math.ceil(TOTAL / ROWS), GX = Math.min(70, 300 / Math.max(1, COLS - 1)), GY = 52;
+  const X0 = (375 - GX * (COLS - 1)) / 2, Y0 = (123 - GY * (ROWS - 1)) / 2, RAD = Math.min(22, GX / 2 - 4);
   const slot = (i, rtl) => { // stamp slot centre in pass points
-    const row = Math.floor(i / 5); let col = i % 5; if (rtl) col = 4 - col;
-    return { x: (47.5 + col * 70) * SX, y: STRIP_Y + (35.5 + row * 52) * SX, r: 22 * SX };
+    const row = Math.floor(i / COLS); let col = i % COLS; if (rtl) col = COLS - 1 - col;
+    return { x: (X0 + col * GX) * SX, y: STRIP_Y + (Y0 + row * GY) * SX, r: RAD * SX };
   };
   const carPath = new Path2D('M-7.5 -4.5 L-5.5 -10 Q-5 -11.2 -3.6 -11.2 L3.6 -11.2 Q5 -11.2 5.5 -10 L7.5 -4.5 M-11 -1.5 Q-11 -4.5 -8 -4.5 L8 -4.5 Q11 -4.5 11 -1.5 L11 1 Q11 4 8 4 L-8 4 Q-11 4 -11 1 Z M-7.5 4 V7.5 M7.5 4 V7.5');
   const drop = new Path2D('M28 6 C28 6 10 26 10 40 A18 18 0 0 0 46 40 C46 26 28 6 28 6 Z');
@@ -78,21 +83,21 @@ if (renderer) {
     const S = rtl ? (x) => W - x : (x) => x;           // mirror x for Arabic
     const A = (a) => (rtl ? (a === 'left' ? 'right' : a === 'right' ? 'left' : a) : a);
     // logo
-    if (logoImg.complete && logoImg.naturalWidth) g.drawImage(logoImg, rtl ? W - 14 - 150 : 14, 20, 150, 150 * 444 / 2340);
+    if (logoImg.complete && logoImg.naturalWidth) { const lw = Math.min(150, 40 * BIZ.logoAspect), lh = lw / BIZ.logoAspect; g.drawImage(logoImg, rtl ? W - 14 - lw : 14, 20 + (40 - lh) / 2 - 6, lw, lh); }
     g.textBaseline = 'alphabetic';
     g.textAlign = A('right'); g.fillStyle = LABEL; g.font = `600 10px ${FONT}`;
     g.fillText((L.stamps || 'Stamps').toUpperCase(), S(W - 14), 24);
-    g.fillStyle = '#fff'; g.font = `500 22px ${FONT}`; g.fillText(`${shown}/10`, S(W - 14), 49);
+    g.fillStyle = '#fff'; g.font = `500 22px ${FONT}`; g.fillText(`${shown}/${TOTAL}`, S(W - 14), 49);
     // strip
-    g.fillStyle = 'rgba(255,255,255,0.06)'; g.strokeStyle = 'rgba(255,85,0,0.35)'; g.lineWidth = 1; rr(16 * SX, STRIP_Y + 6 * SX, W - 32 * SX, 111 * SX, 16 * SX); g.fill(); g.stroke();
-    for (let i = 0; i < 10; i++) {
+    g.fillStyle = 'rgba(255,255,255,0.06)'; g.strokeStyle = 'rgba(' + ACC_RGB + ',0.35)'; g.lineWidth = 1; rr(16 * SX, STRIP_Y + 6 * SX, W - 32 * SX, 111 * SX, 16 * SX); g.fill(); g.stroke();
+    for (let i = 0; i < TOTAL; i++) {
       const p = slot(i, rtl);
       g.save(); g.translate(p.x, p.y);
       if (i < shown) {
         g.fillStyle = ORANGE; g.beginPath(); g.arc(0, 0, p.r, 0, Math.PI * 2); g.fill();
         g.translate(0, 1.5 * SX); g.scale(0.95 * SX, 0.95 * SX); g.strokeStyle = '#fff'; g.lineWidth = 2.6; g.lineCap = g.lineJoin = 'round'; g.stroke(carPath);
-      } else if (i === 9 && shown >= 9) {
-        g.fillStyle = `rgba(255,85,0,${0.15 + 0.25 * sparkle})`; g.strokeStyle = ORANGE; g.lineWidth = 2.4;
+      } else if (i === TOTAL - 1 && shown >= TOTAL - 1) {
+        g.fillStyle = `rgba(${ACC_RGB},${0.15 + 0.25 * sparkle})`; g.strokeStyle = ORANGE; g.lineWidth = 2.4;
         g.beginPath(); g.arc(0, 0, p.r, 0, Math.PI * 2); g.fill(); g.stroke();
         g.fillStyle = ORANGE; g.rotate(sparkle * 0.6); spark(0, 0, 11 * SX * (1 + 0.15 * sparkle));
       } else {
@@ -103,7 +108,7 @@ if (renderer) {
       g.restore();
     }
     // fields
-    const left = Math.max(0, 9 - shown);
+    const left = Math.max(0, TOTAL - 1 - shown);
     const prog = state.lang === 'ar'
       ? (left === 0 ? 'غسلتك المجانية جاهزة!' : left === 1 ? 'باقي غسلة واحدة على الغسلة المجانية' : `باقي ${left} غسلات على الغسلة المجانية`)
       : (left === 0 ? 'Your free wash is ready!' : left === 1 ? '1 more wash until your free one' : `${left} more washes until your free one`);
@@ -115,7 +120,7 @@ if (renderer) {
     g.textAlign = A('right');
     g.fillStyle = LABEL; g.font = `600 10px ${FONT}`; g.fillText(rtl ? L.mid : (L.mid || '').toUpperCase(), S(W - 14), 244);
     g.fillStyle = '#fff'; g.font = `400 15px ${FONT}`; g.direction = 'ltr'; g.textAlign = rtl ? 'left' : 'right';
-    g.fillText('RP-04821', rtl ? 14 : W - 14, 263); g.direction = rtl ? 'rtl' : 'ltr';
+    g.fillText(BIZ.idPrefix + '-04821', rtl ? 14 : W - 14, 263); g.direction = rtl ? 'rtl' : 'ltr';
     // QR
     g.fillStyle = '#fff'; rr(W / 2 - 68, 286, 136, 136, 10); g.fill();
     g.drawImage(qr, W / 2 - 60, 294, 120, 120);
@@ -157,7 +162,7 @@ if (renderer) {
   // ---------- water drop ----------
   const prof = [];
   for (let i = 0; i <= 16; i++) { const t = i / 16, a = t * Math.PI; prof.push(new THREE.Vector2(Math.sin(a) * 0.17 * Math.pow(t, 0.6), -Math.cos(a) * 0.2 + 0.14 * Math.pow(1 - t, 3))); }
-  const dropMat = new Mat({ color: 0xcfe0ff, roughness: 0.02, metalness: 0, transmission: LOW ? 0 : 0.9, thickness: 0.3, ior: 1.33, clearcoat: 1, transparent: true, opacity: LOW ? 0.85 : 1, emissive: 0xff5500, emissiveIntensity: 0.12, envMapIntensity: 0.8 });
+  const dropMat = new Mat({ color: 0xcfe0ff, roughness: 0.02, metalness: 0, transmission: LOW ? 0 : 0.9, thickness: 0.3, ior: 1.33, clearcoat: 1, transparent: true, opacity: LOW ? 0.85 : 1, emissive: ACC_HEX, emissiveIntensity: 0.12, envMapIntensity: 0.8 });
   const dropMesh = new THREE.Mesh(new THREE.LatheGeometry(prof, 24), dropMat);
   dropMesh.visible = false; scene.add(dropMesh);
 
@@ -246,7 +251,7 @@ if (renderer) {
     // auto-demo
     const idle = !window.__userAt || Date.now() - window.__userAt > 7000;
     if (idle && !anim.drop && anim.spin < 0 && time > nextAuto) {
-      if (state.stamps < 9) { window.cardStamp && window.cardStamp(); nextAuto = time + 2.6; }
+      if (state.stamps < TOTAL - 1) { window.cardStamp && window.cardStamp(); nextAuto = time + 2.6; }
       else if (!holdUntil) holdUntil = time + 3.5;
       else if (time > holdUntil) { holdUntil = 0; window.cardReset && window.cardReset(); nextAuto = time + 2.5; }
     }

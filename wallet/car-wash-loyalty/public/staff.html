@@ -23,7 +23,7 @@
   .card { background: var(--blue); color: #fff; border-radius: 16px; padding: 16px; }
   .card .top { display: flex; justify-content: space-between; align-items: baseline; }
   .card .big { font-size: 34px; font-weight: 700; }
-  .dots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 12px 0; }
+  .dots { display: grid; grid-template-columns: repeat({{COLS}}, 1fr); gap: 8px; margin: 12px 0; }
   .dots i { aspect-ratio: 1; border-radius: 50%; border: 2px dashed rgba(255,255,255,.6); }
   .dots i.on { background: var(--acc); border: 0; }
   .msg { min-height: 1.4em; margin-top: 10px; color: var(--muted); }
@@ -51,7 +51,7 @@
       <button class="primary" id="scanBtn">Scan customer card</button>
       <video id="video" playsinline muted></video>
       <div class="row">
-        <input id="mid" placeholder="or type member ID, e.g. CW-04821" autocapitalize="characters">
+        <input id="mid" placeholder="or type member ID, e.g. {{PREFIX}}-04821" autocapitalize="characters">
       </div>
       <div class="row"><button class="ghost" id="findBtn">Find card</button></div>
       <div class="msg" id="msg"></div>
@@ -108,14 +108,14 @@ function render(m) {
 async function find(id) {
   id = String(id || '').trim().toUpperCase();
   if (!id) return;
-  try { render(await api('/api/staff/member?id=' + encodeURIComponent(id))); say(''); }
+  try { render(await api('{{BASE}}/api/staff/member?id=' + encodeURIComponent(id))); say(''); }
   catch (e) { say(e.message, 'err'); }
 }
 
 async function act(kind) {
   if (!current) return;
   try {
-    const j = await api(`/api/staff/member/${encodeURIComponent(current.memberId)}/${kind}`, { method: 'POST' });
+    const j = await api(`{{BASE}}/api/staff/member/${encodeURIComponent(current.memberId)}/${kind}`, { method: 'POST' });
     render(j.member);
     const label = { stamp: 'Stamp added', undo: 'Stamp removed', redeem: 'Free wash given, card reset' }[kind];
     say(`${label}. ${j.pushed ? 'Customer\'s Wallet card is updating.' : 'Card will update next time their phone checks.'}`, 'ok');
@@ -124,7 +124,7 @@ async function act(kind) {
 }
 
 async function loadList() {
-  const rows = await api('/api/staff/members');
+  const rows = await api('{{BASE}}/api/staff/members');
   $('list').innerHTML = rows.slice(0, 30).map((m) =>
     `<li data-id="${m.memberId}"><b>${m.name.replace(/[<&>]/g, '')}</b><span>${m.memberId} · ${m.stamps}/${m.total}</span></li>`).join('') || '<li><span>No cards yet</span></li>';
 }
@@ -167,12 +167,12 @@ $('stampBtn').onclick = () => act('stamp');
 $('undoBtn').onclick = () => { if (confirm('Remove one stamp?')) act('undo'); };
 $('redeemBtn').onclick = () => act('redeem');
 $('loginBtn').onclick = async () => {
-  try { await api('/api/staff/login', { method: 'POST', body: JSON.stringify({ pin: $('pin').value }) }); show('app'); loadList(); }
+  try { await api('{{BASE}}/api/staff/login', { method: 'POST', body: JSON.stringify({ pin: $('pin').value }) }); show('app'); loadList(); }
   catch (e) { $('loginMsg').textContent = e.message; }
 };
 $('pin').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('loginBtn').click(); });
 
-api('/api/staff/me').then(() => { show('app'); loadList(); }).catch(() => show('login'));
+api('{{BASE}}/api/staff/me').then(() => { show('app'); loadList(); }).catch(() => show('login'));
 </script>
 </body>
 </html>

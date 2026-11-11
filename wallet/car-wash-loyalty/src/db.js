@@ -1,17 +1,19 @@
 // SQLite storage (built into Node 22): members, device registrations, stamp log.
+// One database serves every car wash; each member row belongs to one business (its slug).
 const path = require('node:path');
 const fs = require('node:fs');
 const crypto = require('node:crypto');
 process.removeAllListeners('warning'); // hide the "SQLite is experimental" notice
 const { DatabaseSync } = require('node:sqlite');
 
-function openDb(file) {
+function openDb(file, defaultBusiness = '') {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const db = new DatabaseSync(file);
   db.exec(`
     PRAGMA journal_mode = WAL;
     CREATE TABLE IF NOT EXISTS members (
       serial TEXT PRIMARY KEY,
+      business TEXT NOT NULL DEFAULT '',
       member_id TEXT UNIQUE NOT NULL,
       auth_token TEXT NOT NULL,
       name TEXT NOT NULL,
@@ -36,14 +38,24 @@ function openDb(file) {
     );
   `);
 
+  // Databases made before multi-business support have no business column: add it and give the
+  // existing cards to the first business.
+  const cols = db.prepare('PRAGMA table_info(members)').all().map((c) => c.name);
+  if (!cols.includes('business')) {
+    db.exec("ALTER TABLE members ADD COLUMN business TEXT NOT NULL DEFAULT ''");
+    db.prepare("UPDATE members SET business = ? WHERE business = ''").run(defaultBusiness);
+  }
+  db.exec('CREATE INDEX IF NOT EXISTS members_business ON members (business, updated_at)');
+
   const q = {
-    insert: db.prepare(`INSERT INTO members (serial, member_id, auth_token, name, phone, created_at, updated_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)`),
+    insert: db.prepare(`INSERT INTO members (serial, business, member_id, auth_token, name, phone, created_at, updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`),
     bySerial: db.prepare('SELECT * FROM members WHERE serial = ?'),
     byMemberId: db.prepare('SELECT * FROM members WHERE member_id = ?'),
-    byPhone: db.prepare('SELECT * FROM members WHERE phone = ? ORDER BY created_at DESC LIMIT 1'),
+    byMemberIdIn: db.prepare('SELECT * FROM members WHERE business = ? AND member_id = ?'),
+    byPhone: db.prepare('SELECT * FROM members WHERE business = ? AND phone = ? ORDER BY created_at DESC LIMIT 1'),
     setStamps: db.prepare('UPDATE members SET stamps = ?, rewards_redeemed = ?, last_stamp_at = ?, updated_at = ? WHERE serial = ?'),
-    list: db.prepare('SELECT * FROM members ORDER BY updated_at DESC LIMIT ?'),
+    list: db.prepare('SELECT * FROM members WHERE business = ? ORDER BY updated_at DESC LIMIT ?'),
     register: db.prepare('INSERT OR REPLACE INTO registrations (device_id, push_token, serial) VALUES (?, ?, ?)'),
     isRegistered: db.prepare('SELECT 1 FROM registrations WHERE device_id = ? AND serial = ?'),
     unregister: db.prepare('DELETE FROM registrations WHERE device_id = ? AND serial = ?'),
@@ -56,24 +68,26 @@ function openDb(file) {
 
   const now = () => Date.now();
 
-  function newMemberId() {
+  function newMemberId(prefix) {
     for (;;) {
-      const id = 'RP-' + String(crypto.randomInt(0, 100000)).padStart(5, '0');
+      const id = prefix + '-' + String(crypto.randomInt(0, 100000)).padStart(5, '0');
       if (!q.byMemberId.get(id)) return id;
     }
   }
 
   return {
-    createMember(name, phone) {
+    createMember(business, prefix, name, phone) {
       const serial = crypto.randomUUID();
-      const memberId = newMemberId();
-      q.insert.run(serial, memberId, crypto.randomBytes(24).toString('hex'), name, phone || null, new Date().toISOString(), now());
+      const memberId = newMemberId(prefix);
+      q.insert.run(serial, business, memberId, crypto.randomBytes(24).toString('hex'), name, phone || null, new Date().toISOString(), now());
       return q.bySerial.get(serial);
     },
     get: (serial) => q.bySerial.get(serial),
-    getByMemberId: (id) => q.byMemberId.get(String(id).trim().toUpperCase()),
-    getByPhone: (phone) => q.byPhone.get(phone),
-    list: (limit = 50) => q.list.all(limit),
+    // Look-ups by member ID or phone are always inside one business, so one car wash's staff
+    // can never stamp another car wash's card.
+    getByMemberId: (business, id) => q.byMemberIdIn.get(business, String(id).trim().toUpperCase()),
+    getByPhone: (business, phone) => q.byPhone.get(business, phone),
+    list: (business, limit = 50) => q.list.all(business, limit),
     // Adds a stamp; when the card is full the staff redeems instead.
     change(serial, kind, total) {
       const m = q.bySerial.get(serial);

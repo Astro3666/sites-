@@ -16,7 +16,7 @@
   .brand span { opacity: .85; font-size: 18px; }
   h1 { font-size: 22px; margin: 0 0 4px; }
   p.sub { margin: 0 0 22px; opacity: .85; }
-  .dots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,85,0,.35); padding: 16px; border-radius: 16px; margin-bottom: 22px; }
+  .dots { display: grid; grid-template-columns: repeat({{COLS}}, 1fr); gap: 10px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,85,0,.35); padding: 16px; border-radius: 16px; margin-bottom: 22px; }
   .dots i { aspect-ratio: 1; border-radius: 50%; border: 2px dashed rgba(255,255,255,.6); }
   .dots i.on { background: var(--acc); border: 0; }
   label { display: block; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; margin: 14px 0 6px; opacity: .9; }
@@ -38,16 +38,16 @@
   </div>
 
   <form id="f">
-    <h1>Wash {{PAID}} times, your {{TOTAL}}th is free</h1>
+    <h1>{{RULE_EN}}</h1>
     <p class="sub">Get your stamp card in Apple Wallet. It updates by itself every time you wash.</p>
-    <div class="dots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="dots" aria-hidden="true" id="dots"></div>
     <label for="name">Your name / الاسم</label>
     <input id="name" name="name" autocomplete="given-name" required maxlength="40">
     <label for="phone">Phone / الهاتف</label>
     <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+968" required>
     <button id="go">Add to Apple Wallet</button>
     <div class="err" id="err" role="alert"></div>
-    <div class="ar">احصل على بطاقة الأختام في Apple Wallet. اغسل {{PAID}} مرات والغسلة {{TOTAL}} مجاناً.</div>
+    <div class="ar">احصل على بطاقة الأختام في Apple Wallet. {{RULE_AR}}.</div>
   </form>
 
   <div class="done" id="done">
@@ -58,11 +58,12 @@
   <footer class="rights">Card and website design © {{YEAR}} {{CREDIT_EN}}. All rights reserved.<br><span dir="rtl">تصميم البطاقة والموقع © {{YEAR}} {{CREDIT_AR}}. جميع الحقوق محفوظة.</span></footer>
 </main>
 <script>
+  document.getElementById('dots').innerHTML = Array.from({ length: {{TOTAL}} }, (_, i) => '<i' + (i === 0 ? ' class="on"' : '') + '></i>').join('');
   const f = document.getElementById('f'), err = document.getElementById('err'), go = document.getElementById('go');
   f.addEventListener('submit', async (e) => {
     e.preventDefault(); err.textContent = ''; go.disabled = true;
     try {
-      const r = await fetch('/api/join', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      const r = await fetch('{{BASE}}/api/join', { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: f.name.value, phone: f.phone.value }) });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || 'Something went wrong.');

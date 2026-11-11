@@ -1,7 +1,11 @@
-// Loyalty card server:
+// Loyalty card server for one or many car washes:
 //  - customer sign-up page that hands out the Wallet pass
 //  - staff page to scan a card and add stamps / redeem the free wash
 //  - Apple Wallet web service, so passes on phones update by themselves
+//
+// Each car wash lives at /<slug>/ (e.g. /rp-car-wash/ and /rp-car-wash/staff), or at the root of
+// its own domain when that domain is listed in its business.json "domains" and points here.
+// The Wallet web service (/wallet/v1/...) is shared by all of them.
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -9,16 +13,28 @@ const crypto = require('node:crypto');
 const { loadConfig, loadCredentials, ROOT } = require('./config');
 const { openDb } = require('./db');
 const { buildPass } = require('./pass');
-const art = require('./art');
+const { loadBusinesses, ruleText } = require('./business');
 const { createPusher } = require('./apns');
 
 const cfg = loadConfig();
 const creds = loadCredentials(cfg);
-const db = openDb(path.resolve(ROOT, cfg.server.database || 'data/loyalty.db'));
+const { list: BUSINESSES, bySlug } = loadBusinesses();
+if (!BUSINESSES.length) throw new Error('No businesses found in businesses/');
+const byHost = new Map();
+for (const b of BUSINESSES) for (const d of b.domains) { byHost.set(d.toLowerCase(), b); byHost.set('www.' + d.toLowerCase(), b); }
+const db = openDb(path.resolve(ROOT, cfg.server.database || 'data/loyalty.db'), BUSINESSES[0].slug);
 const pusher = createPusher(cfg, creds, db);
-const TOTAL = cfg.program.stampsForReward;
 const PTID = cfg.apple.passTypeIdentifier;
-const SESSION_SECRET = process.env.SESSION_SECRET || crypto.createHash('sha256').update('s:' + cfg.server.staffPin + creds.keyPem).digest('hex');
+const SESSION_SECRET = process.env.SESSION_SECRET || crypto.createHash('sha256').update('s:' + creds.keyPem).digest('hex');
+
+// Staff PIN per car wash: env STAFF_PIN_<SLUG> (e.g. STAFF_PIN_RP_CAR_WASH), else config.json
+// "staffPins": {"rp-car-wash": "..."}. A car wash with no PIN set has staff login switched off.
+function staffPin(biz) {
+  const env = process.env['STAFF_PIN_' + biz.slug.toUpperCase().replace(/-/g, '_')];
+  const pin = env || (cfg.staffPins || {})[biz.slug] || (BUSINESSES.length === 1 && cfg.server.staffPin) || '';
+  return pin && pin !== 'change-me' ? String(pin) : '';
+}
+for (const b of BUSINESSES) if (!staffPin(b)) console.warn(`Warning: no staff PIN for ${b.slug}; its staff page is locked.`);
 
 // ---------- helpers ----------
 function send(res, status, body, headers = {}) {
@@ -52,20 +68,22 @@ function passAuthOk(req, member) {
   return member && h.startsWith('ApplePass ') && safeEqual(h.slice(10), member.auth_token);
 }
 
-function staffToken() {
+// Staff session cookie, signed for one business only.
+const cookieName = (biz) => 'staff_' + biz.slug.replace(/-/g, '_');
+function staffToken(biz) {
   const exp = Date.now() + 12 * 3600 * 1000;
-  const sig = crypto.createHmac('sha256', SESSION_SECRET).update(String(exp)).digest('hex');
+  const sig = crypto.createHmac('sha256', SESSION_SECRET).update(biz.slug + ':' + exp + ':' + staffPin(biz)).digest('hex');
   return `${exp}.${sig}`;
 }
-function isStaff(req) {
-  const m = /(?:^|;\s*)staff=([^;]+)/.exec(req.headers.cookie || '');
-  if (!m) return false;
+function isStaff(req, biz) {
+  const m = new RegExp('(?:^|;\\s*)' + cookieName(biz) + '=([^;]+)').exec(req.headers.cookie || '');
+  if (!m || !staffPin(biz)) return false;
   const [exp, sig] = m[1].split('.');
   if (!exp || !sig || Number(exp) < Date.now()) return false;
-  return safeEqual(sig, crypto.createHmac('sha256', SESSION_SECRET).update(exp).digest('hex'));
+  return safeEqual(sig, crypto.createHmac('sha256', SESSION_SECRET).update(biz.slug + ':' + exp + ':' + staffPin(biz)).digest('hex'));
 }
 
-const loginAttempts = new Map(); // ip -> {n, until}
+const loginAttempts = new Map(); // ip|slug -> {n, until}
 function tooManyAttempts(ip) {
   const a = loginAttempts.get(ip);
   return a && a.n >= 5 && a.until > Date.now();
@@ -76,7 +94,8 @@ function failedAttempt(ip) {
   loginAttempts.set(ip, a);
 }
 
-function publicMember(m) {
+function publicMember(m, biz) {
+  const TOTAL = biz.program.stampsForReward;
   return {
     memberId: m.member_id, name: m.name, phone: m.phone, stamps: m.stamps, total: TOTAL,
     freeReady: m.stamps >= TOTAL - 1, rewardsRedeemed: m.rewards_redeemed, lastStampAt: m.last_stamp_at,
@@ -85,26 +104,41 @@ function publicMember(m) {
 }
 
 function sendPass(res, member) {
-  const buf = buildPass(cfg, creds, member);
+  const biz = bySlug.get(member.business);
+  if (!biz) return send(res, 410, 'This card is no longer active.');
+  const buf = buildPass(cfg, creds, member, biz);
   send(res, 200, buf, {
     'Content-Type': 'application/vnd.apple.pkpass',
-    'Content-Disposition': `attachment; filename="${cfg.business.slug || 'loyalty'}.pkpass"`,
+    'Content-Disposition': `attachment; filename="${biz.slug}.pkpass"`,
     'Last-Modified': new Date(member.updated_at).toUTCString(),
   });
 }
 
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const pages = {};
-function page(name) {
-  if (!pages[name] || process.env.NODE_ENV !== 'production') {
-    const b = cfg.business;
-    pages[name] = fs.readFileSync(path.join(ROOT, 'public', name), 'utf8')
-      .replaceAll('{{NAME_EN}}', b.nameEn).replaceAll('{{NAME_AR}}', b.nameAr)
-      .replaceAll('{{BG}}', b.colors.background).replaceAll('{{ACCENT}}', b.colors.accent || art.ORANGE).replaceAll('{{LOGO}}', art.dataUri('logo-wide-600.png')).replaceAll('{{TOTAL}}', String(TOTAL))
-      .replaceAll('{{PAID}}', String(TOTAL - 1))
+function page(name, biz, base) {
+  const key = name + '|' + biz.slug + '|' + base;
+  if (!pages[key] || process.env.NODE_ENV !== 'production') {
+    const b = biz, TOTAL = b.program.stampsForReward, rule = ruleText(TOTAL);
+    pages[key] = fs.readFileSync(path.join(ROOT, 'public', name), 'utf8')
+      .replaceAll('{{NAME_EN}}', esc(b.name.en)).replaceAll('{{NAME_AR}}', esc(b.name.ar))
+      .replaceAll('{{BG}}', b.colors.card).replaceAll('{{ACCENT}}', b.colors.accent).replaceAll('{{LOGO}}', b.dataUri('logo-web.png'))
+      .replaceAll('{{RULE_EN}}', esc(rule.en)).replaceAll('{{RULE_AR}}', esc(rule.ar)).replaceAll('{{TOTAL}}', String(TOTAL))
+      .replaceAll('{{PAID}}', String(TOTAL - 1)).replaceAll('{{BASE}}', base).replaceAll('{{PREFIX}}', esc(biz.idPrefix)).replaceAll('{{COLS}}', String(TOTAL <= 5 ? TOTAL : Math.ceil(TOTAL / 2)))
       .replaceAll('{{YEAR}}', String(new Date().getFullYear()))
-      .replaceAll('{{CREDIT_EN}}', cfg.credit.en).replaceAll('{{CREDIT_AR}}', cfg.credit.ar);
+      .replaceAll('{{CREDIT_EN}}', esc(cfg.credit.en)).replaceAll('{{CREDIT_AR}}', esc(cfg.credit.ar));
   }
-  return pages[name];
+  return pages[key];
+}
+
+// Which car wash a request is for: its own domain, or the /<slug> path prefix.
+function whichBusiness(req, p) {
+  const host = String(req.headers.host || '').split(':')[0].toLowerCase();
+  if (byHost.has(host)) return { biz: byHost.get(host), base: '', rest: p };
+  const m = /^\/([a-z0-9-]+)(\/.*)?$/.exec(p);
+  if (m && bySlug.has(m[1])) return { biz: bySlug.get(m[1]), base: '/' + m[1], rest: m[2] || '' };
+  if (BUSINESSES.length === 1) return { biz: BUSINESSES[0], base: '', rest: p };
+  return null;
 }
 
 // ---------- routes ----------
@@ -152,52 +186,67 @@ async function route(req, res) {
     return send(res, 200);
   }
 
-  // ----- customer -----
-  if (p === '/' && req.method === 'GET') return send(res, 200, page('join.html'), { 'Content-Type': 'text/html; charset=utf-8' });
-  if (p === '/api/join' && req.method === 'POST') {
+  if (p === '/health') return send(res, 200, { ok: true, businesses: BUSINESSES.length });
+
+  // ----- per car wash -----
+  const w = whichBusiness(req, p);
+  if (!w) {
+    if (p === '/') return send(res, 200, BUSINESSES.map((b) => `<p><a href="/${b.slug}/">${esc(b.name.en)}</a></p>`).join(''), { 'Content-Type': 'text/html; charset=utf-8' });
+    return send(res, 404, 'Not found');
+  }
+  const { biz, base } = w;
+  const r = w.rest;
+  const html = { 'Content-Type': 'text/html; charset=utf-8' };
+  if (r === '' && req.method === 'GET') return send(res, 301, '', { Location: base + '/' });
+
+  // customer
+  if (r === '/' && req.method === 'GET') return send(res, 200, page('join.html', biz, base), html);
+  if (r === '/api/join' && req.method === 'POST') {
     const body = await readBody(req);
     const name = String(body.name || '').trim().slice(0, 40);
     const phone = String(body.phone || '').replace(/[^\d+]/g, '').slice(0, 16);
     if (!name) return send(res, 400, { error: 'Please enter your name.' });
     if (phone.replace(/\D/g, '').length < 8) return send(res, 400, { error: 'Please enter a valid phone number.' });
-    const member = db.getByPhone(phone) || db.createMember(name, phone);
-    return send(res, 200, { passUrl: `/pass/${member.serial}?t=${member.auth_token}`, memberId: member.member_id });
+    const member = db.getByPhone(biz.slug, phone) || db.createMember(biz.slug, biz.idPrefix, name, phone);
+    return send(res, 200, { passUrl: `${base}/pass/${member.serial}?t=${member.auth_token}`, memberId: member.member_id });
   }
-  if ((m = /^\/pass\/([^/]+)$/.exec(p)) && req.method === 'GET') {
+  if ((m = /^\/pass\/([^/]+)$/.exec(r)) && req.method === 'GET') {
     const member = db.get(decodeURIComponent(m[1]));
-    if (!member || !safeEqual(url.searchParams.get('t') || '', member.auth_token)) return send(res, 404, 'Not found');
+    if (!member || member.business !== biz.slug || !safeEqual(url.searchParams.get('t') || '', member.auth_token)) return send(res, 404, 'Not found');
     return sendPass(res, member);
   }
 
-  // ----- staff -----
-  if (p === '/staff' && req.method === 'GET') return send(res, 200, page('staff.html'), { 'Content-Type': 'text/html; charset=utf-8' });
-  if (p === '/api/staff/login' && req.method === 'POST') {
-    if (tooManyAttempts(ip)) return send(res, 429, { error: 'Too many tries. Wait 10 minutes.' });
+  // staff
+  if (r === '/staff' && req.method === 'GET') return send(res, 200, page('staff.html', biz, base), html);
+  if (r === '/api/staff/login' && req.method === 'POST') {
+    const key = ip + '|' + biz.slug;
+    if (tooManyAttempts(key)) return send(res, 429, { error: 'Too many tries. Wait 10 minutes.' });
+    if (!staffPin(biz)) return send(res, 403, { error: 'Staff login is not set up yet.' });
     const body = await readBody(req);
-    if (!safeEqual(String(body.pin || ''), String(cfg.server.staffPin))) { failedAttempt(ip); return send(res, 401, { error: 'Wrong PIN.' }); }
-    loginAttempts.delete(ip);
+    if (!safeEqual(String(body.pin || ''), staffPin(biz))) { failedAttempt(key); return send(res, 401, { error: 'Wrong PIN.' }); }
+    loginAttempts.delete(key);
     const secure = cfg.server.publicUrl.startsWith('https') ? '; Secure' : '';
-    return send(res, 200, { ok: true }, { 'Set-Cookie': `staff=${staffToken()}; HttpOnly; SameSite=Strict; Path=/; Max-Age=43200${secure}` });
+    return send(res, 200, { ok: true }, { 'Set-Cookie': `${cookieName(biz)}=${staffToken(biz)}; HttpOnly; SameSite=Strict; Path=${base || '/'}; Max-Age=43200${secure}` });
   }
-  if (p.startsWith('/api/staff/')) {
-    if (!isStaff(req)) return send(res, 401, { error: 'Please log in.' });
-    if (p === '/api/staff/me') return send(res, 200, { ok: true });
-    if (p === '/api/staff/members' && req.method === 'GET') return send(res, 200, db.list(100).map(publicMember));
-    if (p === '/api/staff/member' && req.method === 'GET') {
-      const member = db.getByMemberId(url.searchParams.get('id') || '');
-      return member ? send(res, 200, publicMember(member)) : send(res, 404, { error: 'No card with that member ID.' });
+  if (r.startsWith('/api/staff/')) {
+    if (!isStaff(req, biz)) return send(res, 401, { error: 'Please log in.' });
+    const pub = (x) => publicMember(x, biz);
+    if (r === '/api/staff/me') return send(res, 200, { ok: true });
+    if (r === '/api/staff/members' && req.method === 'GET') return send(res, 200, db.list(biz.slug, 100).map(pub));
+    if (r === '/api/staff/member' && req.method === 'GET') {
+      const member = db.getByMemberId(biz.slug, url.searchParams.get('id') || '');
+      return member ? send(res, 200, pub(member)) : send(res, 404, { error: 'No card with that member ID.' });
     }
-    if ((m = /^\/api\/staff\/member\/([^/]+)\/(stamp|undo|redeem)$/.exec(p)) && req.method === 'POST') {
-      const member = db.getByMemberId(decodeURIComponent(m[1]));
+    if ((m = /^\/api\/staff\/member\/([^/]+)\/(stamp|undo|redeem)$/.exec(r)) && req.method === 'POST') {
+      const member = db.getByMemberId(biz.slug, decodeURIComponent(m[1]));
       if (!member) return send(res, 404, { error: 'No card with that member ID.' });
-      const r = db.change(member.serial, m[2], TOTAL);
-      if (r.error) return send(res, 409, { error: r.error, member: publicMember(r.member) });
+      const out = db.change(member.serial, m[2], biz.program.stampsForReward);
+      if (out.error) return send(res, 409, { error: out.error, member: pub(out.member) });
       const pushes = await pusher.notify(member.serial);
-      return send(res, 200, { member: publicMember(r.member), pushed: pushes.filter((x) => x.status === 200).length });
+      return send(res, 200, { member: pub(out.member), pushed: pushes.filter((x) => x.status === 200).length });
     }
   }
 
-  if (p === '/health') return send(res, 200, { ok: true });
   return send(res, 404, 'Not found');
 }
 
@@ -206,4 +255,5 @@ const server = http.createServer((req, res) => {
 });
 server.listen(cfg.server.port || 3000, () => {
   console.log(`Loyalty server on :${cfg.server.port || 3000}  (public URL ${cfg.server.publicUrl})`);
+  for (const b of BUSINESSES) console.log(`  ${b.name.en}: ${cfg.server.publicUrl}/${b.slug}/  staff: /${b.slug}/staff`);
 });

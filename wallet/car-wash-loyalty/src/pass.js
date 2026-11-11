@@ -3,6 +3,7 @@ const crypto = require('node:crypto');
 const forge = require('node-forge');
 const { zip } = require('./zip');
 const art = require('./art');
+const { ruleText, toArabicDigits } = require('./business');
 
 const sha1 = (b) => crypto.createHash('sha1').update(b).digest('hex');
 
@@ -11,7 +12,6 @@ function hexToRgb(hex) {
   return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`;
 }
 
-const toArabicDigits = (s) => String(s).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
 
 // .strings files: "key" = "value"; (UTF-8 is accepted by Wallet)
 function stringsFile(map) {
@@ -19,25 +19,26 @@ function stringsFile(map) {
   return Buffer.from(Object.entries(map).map(([k, v]) => `"${esc(k)}" = "${esc(v)}";`).join('\n') + '\n', 'utf8');
 }
 
-function progressText(cfg, stamps) {
-  const total = cfg.program.stampsForReward; // e.g. 10 (the 10th is free)
+function progressText(biz, stamps) {
+  const total = biz.program.stampsForReward; // e.g. 10 (the 10th is free)
   const paid = total - 1;
   const left = Math.max(0, paid - stamps);
+  const rule = ruleText(total);
   return {
     en: {
-      rule: `Wash ${paid} times, your ${total}th is free`,
+      rule: rule.en,
       progress: left === 0 ? 'Your free wash is ready!' : left === 1 ? '1 more wash until your free one' : `${left} more washes until your free one`,
     },
     ar: {
-      rule: `اغسل ${toArabicDigits(paid)} مرات، والغسلة ${total === 10 ? 'العاشرة' : toArabicDigits(total)} مجاناً`,
+      rule: rule.ar,
       progress: left === 0 ? 'غسلتك المجانية جاهزة!' : left === 1 ? 'باقي غسلة واحدة على الغسلة المجانية' : `باقي ${left} غسلات على الغسلة المجانية`,
     },
   };
 }
 
-function passJson(cfg, member) {
-  const b = cfg.business;
-  const total = cfg.program.stampsForReward;
+function passJson(cfg, member, biz) {
+  const b = biz;
+  const total = b.program.stampsForReward;
   const stamps = Math.min(member.stamps, total - 1);
   const pj = {
     formatVersion: 1,
@@ -46,9 +47,9 @@ function passJson(cfg, member) {
     serialNumber: member.serial,
     authenticationToken: member.auth_token,
     webServiceURL: `${cfg.server.publicUrl.replace(/\/$/, '')}/wallet`,
-    organizationName: b.nameEn,
+    organizationName: b.name.en,
     description: 'loyalty_description',
-    backgroundColor: hexToRgb(b.colors.background),
+    backgroundColor: hexToRgb(b.colors.card),
     foregroundColor: hexToRgb(b.colors.foreground),
     labelColor: hexToRgb(b.colors.label),
     sharingProhibited: true,
@@ -71,7 +72,7 @@ function passJson(cfg, member) {
           : []),
         ...(b.phone ? [{ key: 'phone', label: 'phone_label', value: b.phone }] : []),
         ...(b.whatsapp ? [{ key: 'wa', label: 'WhatsApp', value: `https://wa.me/${b.whatsapp.replace(/\D/g, '')}` }] : []),
-        ...(b.address ? [{ key: 'address', label: 'address_label', value: 'address_value' }] : []),
+        ...(b.address.en ? [{ key: 'address', label: 'address_label', value: 'address_value' }] : []),
         ...(b.mapsUrl ? [{ key: 'map', label: 'map_label', value: b.mapsUrl }] : []),
         { key: 'terms', label: 'terms_label', value: 'terms_value' },
         { key: 'rights', label: 'rights_label', value: 'rights_value' },
@@ -87,14 +88,14 @@ function passJson(cfg, member) {
   return { pj, stamps, total };
 }
 
-function localisations(cfg, member, stamps) {
-  const b = cfg.business;
-  const t = progressText(cfg, stamps);
-  const paid = cfg.program.stampsForReward - 1;
+function localisations(cfg, member, stamps, biz) {
+  const b = biz;
+  const t = progressText(b, stamps);
+  const paid = b.program.stampsForReward - 1;
   return {
     'en.lproj/pass.strings': stringsFile({
-      loyalty_description: `${b.nameEn} loyalty card`,
-      business_name: b.nameEn,
+      loyalty_description: `${b.name.en} loyalty card`,
+      business_name: b.name.en,
       stamps_label: 'STAMPS',
       stamps_change: 'You now have %@ stamps',
       rule: t.en.rule,
@@ -108,17 +109,17 @@ function localisations(cfg, member, stamps) {
       last_label: 'Last stamp',
       phone_label: 'Phone',
       address_label: 'Address',
-      address_value: b.address || '',
+      address_value: b.address.en || '',
       map_label: 'Location',
       terms_label: 'Terms',
-      terms_value: cfg.program.termsEn,
-      nearby: `You're near ${b.nameEn}. Show your card for a stamp.`,
+      terms_value: b.program.termsEn || '',
+      nearby: `You're near ${b.name.en}. Show your card for a stamp.`,
       rights_label: 'Card design',
       rights_value: `© ${new Date().getFullYear()} ${cfg.credit.en}. All rights reserved.`,
     }),
     'ar.lproj/pass.strings': stringsFile({
-      loyalty_description: `بطاقة ولاء ${b.nameAr}`,
-      business_name: b.nameAr,
+      loyalty_description: `بطاقة ولاء ${b.name.ar}`,
+      business_name: b.name.ar,
       stamps_label: 'الأختام',
       stamps_change: 'لديك الآن %@ أختام',
       rule: t.ar.rule,
@@ -132,11 +133,11 @@ function localisations(cfg, member, stamps) {
       last_label: 'آخر ختم',
       phone_label: 'الهاتف',
       address_label: 'العنوان',
-      address_value: b.addressAr || b.address || '',
+      address_value: b.address.ar || b.address.en || '',
       map_label: 'الموقع',
       terms_label: 'الشروط',
-      terms_value: cfg.program.termsAr,
-      nearby: `أنت قريب من ${b.nameAr}. اعرض بطاقتك للحصول على ختم.`,
+      terms_value: b.program.termsAr || b.program.termsEn || '',
+      nearby: `أنت قريب من ${b.name.ar}. اعرض بطاقتك للحصول على ختم.`,
       rights_label: 'تصميم البطاقة',
       rights_value: `© ${new Date().getFullYear()} ${cfg.credit.ar}. جميع الحقوق محفوظة.`,
     }),
@@ -164,14 +165,13 @@ function sign(manifest, creds) {
   return Buffer.from(forge.asn1.toDer(p7.toAsn1()).getBytes(), 'binary');
 }
 
-function buildPass(cfg, creds, member) {
-  const { pj, stamps, total } = passJson(cfg, member);
-  const bg = cfg.business.colors.background;
+function buildPass(cfg, creds, member, biz) {
+  const { pj, stamps, total } = passJson(cfg, member, biz);
   const files = {
     'pass.json': Buffer.from(JSON.stringify(pj, null, 2)),
-    ...art.baseImages(),
-    ...art.stripImages(bg, stamps, total, cfg.business.colors.accent || art.ORANGE),
-    ...localisations(cfg, member, stamps),
+    ...art.baseImages(biz),
+    ...art.stripImages(biz.colors.card, stamps, total, biz.colors.accent),
+    ...localisations(cfg, member, stamps, biz),
   };
   const manifest = Buffer.from(JSON.stringify(Object.fromEntries(Object.entries(files).map(([k, v]) => [k, sha1(v)]))));
   files['manifest.json'] = manifest;
