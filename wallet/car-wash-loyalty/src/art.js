@@ -1,11 +1,8 @@
 // Pass artwork (icon, logo, stamp strip) rendered to PNG.
-// Brand: RP Car Wash — black card, orange (#FF5500) stamps, white text.
-// The logo and icon come from the brand files in assets/; the stamp strip is drawn here.
-const fs = require('node:fs');
-const path = require('node:path');
+// The logo and icon come from each business folder (businesses/<slug>/); the stamp strip is drawn here
+// in the business's accent colour.
 const { Resvg } = require('@resvg/resvg-js');
 
-const ASSETS = path.join(__dirname, '..', 'assets');
 const WHITE = '#FFFFFF';
 const ORANGE = '#FF5500';
 
@@ -23,27 +20,37 @@ function sparkle(cx, cy, r, color) {
   return `<path fill="${color}" d="M${cx} ${cy - r} Q${cx + k} ${cy - k} ${cx + r} ${cy} Q${cx + k} ${cy + k} ${cx} ${cy + r} Q${cx - k} ${cy + k} ${cx - r} ${cy} Q${cx - k} ${cy - k} ${cx} ${cy - r} Z"/>`;
 }
 
-const dataUri = (file) => 'data:image/png;base64,' + fs.readFileSync(path.join(ASSETS, file)).toString('base64');
-
-// Square app/Wallet icon: the orange "RP" letters on black.
-function iconSvg(size) {
+// Square Wallet icon from the business's mark.png.
+function iconSvg(size, biz) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 512 512">
-    <image href="${dataUri('rp-mark.png')}" width="512" height="512"/></svg>`;
+    <image href="${biz.dataUri('mark.png')}" width="512" height="512"/></svg>`;
 }
 
-// Wallet logo slot is at most 160x50 pt; the wide "RP CAR WASH" logo fits at 160x30.
-function logoSvg(scale) {
-  const w = 160 * scale, h = Math.round(160 * scale * 444 / 2340);
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 2340 444">
-    <image href="${dataUri('logo-wide.png')}" width="2340" height="444"/></svg>`;
+// Wallet's logo slot is at most 160x50 pt; fit the business logo inside it.
+function logoBox(biz) {
+  const { w, h } = biz.logoSize;
+  const k = Math.min(160 / w, 50 / h);
+  return { w: Math.round(w * k), h: Math.round(h * k) };
+}
+function logoSvg(scale, biz) {
+  const box = logoBox(biz), { w, h } = biz.logoSize;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${box.w * scale}" height="${box.h * scale}" viewBox="0 0 ${w} ${h}">
+    <image href="${biz.dataUri('logo.png')}" width="${w}" height="${h}"/></svg>`;
+}
+
+// Stamp grid: two rows, as many columns as needed (4 to 12 stamps).
+function stampLayout(total) {
+  const W = 375, H = 123, rows = total <= 5 ? 1 : 2, cols = Math.ceil(total / rows);
+  const gapX = Math.min(70, 300 / Math.max(1, cols - 1)), gapY = 52;
+  const r = Math.min(22, gapX / 2 - 4);
+  const x0 = (W - gapX * (cols - 1)) / 2, y0 = (H - gapY * (rows - 1)) / 2;
+  return { cols, rows, gapX, gapY, r, x0, y0 };
 }
 
 // Strip: 375x123 pt. Two rows of five stamp circles on a subtle panel.
 function stripSvg(scale, bg, stamps, total = 10, rtl = false, accent = ORANGE) {
   const W = 375, H = 123;
-  const cols = 5, rows = Math.ceil(total / cols);
-  const r = 22, gapX = 70, gapY = 52;
-  const x0 = (W - gapX * (cols - 1)) / 2, y0 = (H - gapY * (rows - 1)) / 2;
+  const { cols, r, gapX, gapY, x0, y0 } = stampLayout(total);
   let circles = '';
   for (let i = 0; i < total; i++) {
     const row = Math.floor(i / cols);
@@ -78,15 +85,15 @@ function cached(key, fn) {
   return cache.get(key);
 }
 
-// Static images shared by every pass.
-function baseImages() {
-  return cached('base', () => ({
-    'icon.png': png(iconSvg(29)),
-    'icon@2x.png': png(iconSvg(58)),
-    'icon@3x.png': png(iconSvg(87)),
-    'logo.png': png(logoSvg(1)),
-    'logo@2x.png': png(logoSvg(2)),
-    'logo@3x.png': png(logoSvg(3)),
+// Static images shared by every pass of one business.
+function baseImages(biz) {
+  return cached('base:' + biz.slug, () => ({
+    'icon.png': png(iconSvg(29, biz)),
+    'icon@2x.png': png(iconSvg(58, biz)),
+    'icon@3x.png': png(iconSvg(87, biz)),
+    'logo.png': png(logoSvg(1, biz)),
+    'logo@2x.png': png(logoSvg(2, biz)),
+    'logo@3x.png': png(logoSvg(3, biz)),
   }));
 }
 
@@ -102,4 +109,4 @@ function stripImages(bg, stamps, total, accent = ORANGE) {
   });
 }
 
-module.exports = { baseImages, stripImages, iconSvg, stripSvg, dataUri, ORANGE };
+module.exports = { baseImages, stripImages, iconSvg, logoSvg, logoBox, stripSvg, stampLayout, ORANGE };

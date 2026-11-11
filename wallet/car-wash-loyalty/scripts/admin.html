@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cut">
-<title>RP Car Wash · Management</title>
-<meta name="description" content="RP Car Wash management dashboard: revenue, washes, busiest hours, loyalty members and today's queue.">
+<title>__NAME__ · Management</title>
+<meta name="description" content="__NAME__ management dashboard: revenue, washes, busiest hours, loyalty members and today's queue.">
 <meta name="theme-color" content="#0A0A0B">
 <style>
-:root{--acc:#FF5500;--s1:#F55200;--s2:#3987e5;--ink:#F4F4F5;--ink2:#C4C4C8;--muted:#8E8E96;--bg:#0A0A0B;--panel:#141416;--line:#26262A;--grid:#232327;--base:#3A3A3F;--good:#0ca30c;--bad:#e66767;color-scheme:dark}
+:root{__CSSVARS__;--ink:#F4F4F5;--ink2:#C4C4C8;--muted:#8E8E96;--line:#26262A;--grid:#232327;--base:#3A3A3F;--good:#0ca30c;--bad:#e66767;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;font:15px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,sans-serif;color:var(--ink);background:var(--bg)}
 html[lang=ar] body{font-family:-apple-system,"SF Arabic","Segoe UI",Tahoma,sans-serif}
-a{color:#FF7A33}
+a{color:var(--label)}
 button{font:inherit;color:inherit}
 .wrap{max-width:1180px;margin:0 auto;padding:0 16px}
 nav{position:sticky;top:0;z-index:20;background:rgba(10,10,11,.92);border-bottom:1px solid var(--line)}
@@ -27,7 +27,7 @@ main{padding:20px 0 48px}
 .top p{margin:2px 0 0;color:var(--muted);font-size:14px}
 .filters{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 16px}
 .filters button{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:7px 14px;cursor:pointer;font-size:14px;color:var(--ink2)}
-.filters button[aria-pressed=true]{border-color:var(--acc);color:#fff;background:rgba(255,85,0,.14)}
+.filters button[aria-pressed=true]{border-color:var(--acc);color:#fff;background:rgba(var(--acc-rgb),.14)}
 .note{font-size:13px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:8px 12px;margin:0 0 16px}
 .tiles{display:grid;grid-template-columns:1.4fr repeat(4,1fr);gap:12px;margin-bottom:12px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;min-width:0}
@@ -65,7 +65,7 @@ td.n,th.n{text-align:end;font-variant-numeric:tabular-nums}
 .mrow{margin-top:14px}
 .mrow .h{display:flex;justify-content:space-between;font-size:13px;color:var(--ink2)}
 .mrow .h b{color:var(--ink);font-weight:600}
-.meter{height:8px;border-radius:99px;background:rgba(245,82,0,.18);margin-top:6px;overflow:hidden;direction:ltr}
+.meter{height:8px;border-radius:99px;background:color-mix(in srgb,var(--s1) 20%,transparent);margin-top:6px;overflow:hidden;direction:ltr}
 .meter i{display:block;height:100%;border-radius:99px;background:var(--s1)}
 .mix h3{font-size:13px;color:var(--muted);font-weight:500;margin:14px 0 0}
 .mix h3:first-of-type{margin-top:4px}
@@ -79,9 +79,9 @@ td.n,th.n{text-align:end;font-variant-numeric:tabular-nums}
 .near .id{color:var(--muted);font-family:ui-monospace,Menlo,monospace;font-size:12px}
 .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer;background:transparent;color:var(--ink2)}
 .chip svg{width:12px;height:12px}
-.chip.wash{border-color:rgba(255,85,0,.6);color:#fff}
+.chip.wash{border-color:rgba(var(--acc-rgb),.6);color:#fff}
 .chip.done{border-color:rgba(12,163,12,.6);color:#BFF0BF}
-.src{font-size:11px;color:#FF7A33;border:1px solid rgba(255,122,51,.5);border-radius:6px;padding:1px 6px;margin-inline-start:6px}
+.src{font-size:11px;color:var(--label);border:1px solid var(--label);border-radius:6px;padding:1px 6px;margin-inline-start:6px}
 .qh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .qsum{font-size:13px;color:var(--muted)}
 footer{border-top:1px solid var(--line);padding:20px 0;color:var(--muted);font-size:13px}
@@ -93,7 +93,7 @@ footer{border-top:1px solid var(--line);padding:20px 0;color:var(--muted);font-s
 #login label{font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
 #login input{width:100%;font:inherit;font-size:22px;letter-spacing:.4em;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#0D0D0F;color:#fff;margin:6px 0 14px;text-align:center}
 #login input:focus{outline:2px solid var(--acc);outline-offset:1px}
-#login button{width:100%;border:0;border-radius:12px;padding:13px;background:var(--acc);color:#000;font-weight:700;font-size:16px;cursor:pointer}
+#login button{width:100%;border:0;border-radius:12px;padding:13px;background:var(--acc);color:var(--on-acc);font-weight:700;font-size:16px;cursor:pointer}
 #login .err{color:var(--bad);font-size:13px;min-height:18px;margin:-6px 0 8px}
 #login .hint{margin:14px 0 0;font-size:12px}
 body.locked main,body.locked nav,body.locked footer{visibility:hidden}
@@ -104,7 +104,7 @@ body.locked main,body.locked nav,body.locked footer{visibility:hidden}
 <body class="locked">
 <div id="login">
   <form id="lf" autocomplete="off">
-    <img src="__LOGO__" alt="RP Car Wash">
+    <img src="__LOGO__" alt="__NAME__">
     <h1 data-t="lH"></h1>
     <p data-t="lP"></p>
     <label for="pin" data-t="lPin"></label>
@@ -115,7 +115,7 @@ body.locked main,body.locked nav,body.locked footer{visibility:hidden}
   </form>
 </div>
 <nav><div class="wrap">
-  <a class="brand" href="../" aria-label="RP Car Wash"><img src="__LOGO__" alt="RP Car Wash"></a>
+  <a class="brand" href="../" aria-label="__NAME__"><img src="__LOGO__" alt="__NAME__"></a>
   <span class="tag" data-t="tag"></span>
   <span class="sp"></span>
   <button class="nb" id="lang" type="button">العربية</button>
@@ -148,43 +148,45 @@ body.locked main,body.locked nav,body.locked footer{visibility:hidden}
 </div></main>
 <footer><div class="wrap"><span data-t="foot"></span> · <a href="../" data-t="site"></a></div></footer>
 <script>
+var BIZ = __BIZ__;
+var TOTAL = BIZ.total, CUR = BIZ.currency;
 // ---------- strings ----------
 var T = {
   en: {
-    lH: 'Management login', lP: 'RP Car Wash, Muscat', lPin: 'Staff PIN', lGo: 'Sign in', lHint: 'Demo preview: any 4-digit PIN opens it.', lErr: 'Enter a 4 to 6 digit PIN.',
+    lH: 'Management login', lP: BIZ.name.en + ', ' + BIZ.city.en, lPin: 'Staff PIN', lGo: 'Sign in', lHint: 'Demo preview: any 4-digit PIN opens it.', lErr: 'Enter a 4 to 6 digit PIN.',
     tag: 'Management', out: 'Sign out', h1: 'Business overview', asof: 'Updated', sample: 'Sample data for the preview. Once the booking server is live, these numbers come from real bookings and payments.',
     r1: 'Today', r7: '7 days', r30: '30 days', r90: '90 days',
     revenue: 'Revenue', washes: 'Washes', avg: 'Average ticket', members: 'New loyalty members', online: 'Paid online',
-    vsPrev: 'vs previous period', vsYday: 'vs same time yesterday', omr: 'OMR',
-    revH: 'Revenue', revByHour: 'OMR per hour, today', revByDay: 'OMR per day', revByWeek: 'OMR per week',
+    vsPrev: 'vs previous period', vsYday: 'vs same time yesterday', omr: CUR.en,
+    revH: 'Revenue', revByHour: CUR.en + ' per hour, today', revByDay: CUR.en + ' per day', revByWeek: CUR.en + ' per week',
     mixH: 'What customers buy', mixS: 'Share of washes in the selected range', car: 'Car type', pay: 'Payment', extras: 'Extras taken',
-    sedan: 'Sedan', suv: 'SUV', engine: 'Engine bay & under car', nano: 'Special nano soap', payOnline: 'Online', payShop: 'At the shop',
+    svc: BIZ.services.map(function (x) { return x.en[0]; }), ext: BIZ.extras.map(function (x) { return x.en[0]; }), payOnline: 'Online', payShop: 'At the shop',
     hrsH: 'Busiest hours', hrsSub: 'Washes started per hour', peak: 'Busiest',
     loyH: 'Loyalty card', loyS: 'Apple Wallet stamp cards', active: 'Active cards', freeGiven: 'Free washes given', repeat: 'Repeat customers',
     near: 'Close to a free wash', stamps: 'stamps', ready: function (n) { return n + ' customers have a free wash ready on their card.'; },
-    qH: "Today's queue", qS: 'Tap a status to move a car along: waiting, washing, done.', qsum: function (w, d, r) { return w + ' waiting · ' + d + ' done · ' + r + ' OMR booked'; },
+    qH: "Today's queue", qS: 'Tap a status to move a car along: waiting, washing, done.', qsum: function (w, d, r) { return w + ' waiting · ' + d + ' done · ' + r + ' ' + CUR.en + ' booked'; },
     cols: ['Time', 'Ref', 'Customer', 'Car', 'Extras', 'Payment', 'Total', 'Status'],
     st: ['Waiting', 'Washing', 'Done'], web: 'Website', none: 'None', free: 'Free (loyalty)',
     tbl: 'Show as table', period: 'Period', value: 'Value', hour: 'Hour',
-    foot: 'RP Car Wash, Muscat. Website and loyalty card design © ' + new Date().getFullYear() + ' Mazen. All rights reserved.', site: 'Customer website'
+    foot: BIZ.name.en + ', ' + BIZ.city.en + '. Website and loyalty card design © ' + new Date().getFullYear() + ' Mazen. All rights reserved.', site: 'Customer website'
   },
   ar: {
-    lH: 'دخول الإدارة', lP: 'آر بي لغسيل السيارات، مسقط', lPin: 'رمز الموظف', lGo: 'دخول', lHint: 'معاينة تجريبية: أي رمز من ٤ أرقام يفتح اللوحة.', lErr: 'أدخل رمزاً من ٤ إلى ٦ أرقام.',
+    lH: 'دخول الإدارة', lP: BIZ.name.ar + '، ' + BIZ.city.ar, lPin: 'رمز الموظف', lGo: 'دخول', lHint: 'معاينة تجريبية: أي رمز من ٤ أرقام يفتح اللوحة.', lErr: 'أدخل رمزاً من ٤ إلى ٦ أرقام.',
     tag: 'الإدارة', out: 'خروج', h1: 'نظرة على العمل', asof: 'آخر تحديث', sample: 'بيانات تجريبية للمعاينة. عند تشغيل خادم الحجز تأتي الأرقام من الحجوزات والمدفوعات الحقيقية.',
     r1: 'اليوم', r7: '٧ أيام', r30: '٣٠ يوماً', r90: '٩٠ يوماً',
     revenue: 'الإيرادات', washes: 'الغسلات', avg: 'متوسط الفاتورة', members: 'أعضاء ولاء جدد', online: 'دفع أونلاين',
-    vsPrev: 'مقارنة بالفترة السابقة', vsYday: 'مقارنة بنفس الوقت أمس', omr: 'ر.ع',
-    revH: 'الإيرادات', revByHour: 'ر.ع لكل ساعة، اليوم', revByDay: 'ر.ع لكل يوم', revByWeek: 'ر.ع لكل أسبوع',
+    vsPrev: 'مقارنة بالفترة السابقة', vsYday: 'مقارنة بنفس الوقت أمس', omr: CUR.ar,
+    revH: 'الإيرادات', revByHour: CUR.ar + ' لكل ساعة، اليوم', revByDay: CUR.ar + ' لكل يوم', revByWeek: CUR.ar + ' لكل أسبوع',
     mixH: 'ماذا يطلب العملاء', mixS: 'نسبة الغسلات في الفترة المحددة', car: 'نوع السيارة', pay: 'الدفع', extras: 'الإضافات',
-    sedan: 'سيدان', suv: 'دفع رباعي', engine: 'المحرك وأسفل السيارة', nano: 'صابون النانو الخاص', payOnline: 'أونلاين', payShop: 'في المحل',
+    svc: BIZ.services.map(function (x) { return x.ar[0]; }), ext: BIZ.extras.map(function (x) { return x.ar[0]; }), payOnline: 'أونلاين', payShop: 'في المحل',
     hrsH: 'أوقات الذروة', hrsSub: 'عدد الغسلات في كل ساعة', peak: 'الأكثر ازدحاماً',
     loyH: 'بطاقة الولاء', loyS: 'بطاقات الأختام في Apple Wallet', active: 'بطاقات نشطة', freeGiven: 'غسلات مجانية', repeat: 'عملاء متكررون',
     near: 'قريبون من الغسلة المجانية', stamps: 'أختام', ready: function (n) { return n + ' عميلاً لديهم غسلة مجانية جاهزة في بطاقتهم.'; },
-    qH: 'طابور اليوم', qS: 'اضغط على الحالة لنقل السيارة: انتظار، غسيل، تم.', qsum: function (w, d, r) { return w + ' في الانتظار · ' + d + ' تم · ' + r + ' ر.ع محجوز'; },
+    qH: 'طابور اليوم', qS: 'اضغط على الحالة لنقل السيارة: انتظار، غسيل، تم.', qsum: function (w, d, r) { return w + ' في الانتظار · ' + d + ' تم · ' + r + ' ' + CUR.ar + ' محجوز'; },
     cols: ['الوقت', 'الرقم', 'العميل', 'السيارة', 'الإضافات', 'الدفع', 'المبلغ', 'الحالة'],
     st: ['انتظار', 'غسيل', 'تم'], web: 'الموقع', none: 'لا يوجد', free: 'مجانية (ولاء)',
     tbl: 'عرض كجدول', period: 'الفترة', value: 'القيمة', hour: 'الساعة',
-    foot: 'آر بي لغسيل السيارات، مسقط. تصميم الموقع وبطاقة الولاء © ' + new Date().getFullYear() + ' مازن. جميع الحقوق محفوظة.', site: 'موقع العملاء'
+    foot: BIZ.name.ar + '، ' + BIZ.city.ar + '. تصميم الموقع وبطاقة الولاء © ' + new Date().getFullYear() + ' مازن. جميع الحقوق محفوظة.', site: 'موقع العملاء'
   }
 };
 
@@ -193,31 +195,36 @@ var DATA = (function () {
   var seed = 20261111;
   function rnd() { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
   var NAMES = ['Salim', 'Ahmed', 'Khalid', 'Fatma', 'Said', 'Maryam', 'Hamed', 'Aisha', 'Yousuf', 'Noor', 'Talal', 'Huda', 'Badr', 'Zainab', 'Ali', 'Muna', 'Nasser', 'Rashid', 'Sara', 'Hilal'];
-  var HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
-  var HW = [3, 5, 6, 5, 2, 2, 3, 4, 6, 8, 9, 8, 5];
+  var HOURS = BIZ.hours.slots.map(function (x) { return parseInt(x, 10); }).filter(function (h, i, a) { return a.indexOf(h) === i; });
+  // Evening rush with a smaller morning peak.
+  var HW = HOURS.map(function (h) { return 1 + 7 * Math.exp(-Math.pow(h - 18, 2) / 6) + 4 * Math.exp(-Math.pow(h - 10, 2) / 3); });
+  var NS = BIZ.services.length, SW = BIZ.services.map(function (x, i) { return i === 0 ? 0.58 : 0.42 / Math.max(1, NS - 1); });
+  var XP = BIZ.extras.map(function (x, i) { return [0.24, 0.31, 0.18, 0.12][i % 4]; });
+  var closed = BIZ.hours.closedDays || [];
   var HSUM = HW.reduce(function (a, b) { return a + b; }, 0);
   var DAYS = 181; // 90 shown + 90 for comparison + today
   var today = new Date(); today.setHours(0, 0, 0, 0);
   var members = [];
-  for (var m = 0; m < 260; m++) members.push({ id: 'RP-' + String(10000 + Math.floor(rnd() * 89999)), name: NAMES[m % NAMES.length], stamps: 0, free: 0, visits: 0, joined: Math.floor(rnd() * DAYS) });
+  for (var m = 0; m < 260; m++) members.push({ id: BIZ.idPrefix + '-' + String(10000 + Math.floor(rnd() * 89999)), name: NAMES[m % NAMES.length], stamps: 0, free: 0, visits: 0, joined: Math.floor(rnd() * DAYS) });
   var list = [];
   for (var d = DAYS - 1; d >= 0; d--) {
     var date = new Date(today); date.setDate(today.getDate() - d);
     var dow = date.getDay(); // Fri 5, Sat 6 busiest in Oman
     var base = dow === 5 ? 34 : dow === 6 ? 30 : dow === 4 ? 28 : 22;
     var trend = 1 + 0.18 * (DAYS - d) / DAYS;
-    var n = Math.round(base * trend * (0.85 + rnd() * 0.3));
+    var n = closed.indexOf(dow) >= 0 ? 0 : Math.round(base * trend * (0.85 + rnd() * 0.3));
     for (var i = 0; i < n; i++) {
       var r = rnd() * HSUM, h = 0; while (r > HW[h]) { r -= HW[h]; h++; }
-      var suv = rnd() < 0.42, eng = rnd() < 0.24, nano = rnd() < 0.31;
+      var q = rnd(), svc = 0; while (svc < NS - 1 && q > SW[svc]) { q -= SW[svc]; svc++; }
+      var x = XP.map(function (pr) { return rnd() < pr; });
       var mem = null;
       if (rnd() < 0.55) { var c = members.filter(function (x) { return x.joined >= d; }); if (c.length) mem = c[Math.floor(rnd() * c.length)]; }
       var free = false;
-      if (mem) { mem.visits++; if (mem.stamps >= 9) { free = true; mem.stamps = 0; mem.free++; } else mem.stamps++; }
-      var price = free ? 0 : (suv ? 2 : 1.5);
-      var total = price + (eng ? 1 : 0) + (nano ? 1 : 0);
-      list.push({ day: d, hour: HOURS[h], min: [0, 15, 30, 45][Math.floor(rnd() * 4)], suv: suv, eng: eng, nano: nano, online: rnd() < 0.58, free: free, total: total,
-        name: mem ? mem.name : NAMES[Math.floor(rnd() * NAMES.length)], member: mem ? mem.id : null, ref: 'RP-B' + String(10000 + Math.floor(rnd() * 89999)) });
+      if (mem) { mem.visits++; if (mem.stamps >= TOTAL - 1) { free = true; mem.stamps = 0; mem.free++; } else mem.stamps++; }
+      var price = free ? 0 : BIZ.services[svc].price;
+      var total = price + x.reduce(function (a, on, i) { return a + (on ? BIZ.extras[i].price : 0); }, 0);
+      list.push({ day: d, hour: HOURS[h], min: [0, 15, 30, 45][Math.floor(rnd() * 4)], svc: svc, x: x, online: rnd() < 0.58, free: free, total: total,
+        name: mem ? mem.name : NAMES[Math.floor(rnd() * NAMES.length)], member: mem ? mem.id : null, ref: BIZ.idPrefix + '-B' + String(10000 + Math.floor(rnd() * 89999)) });
     }
   }
   return { list: list, members: members, today: today, HOURS: HOURS };
@@ -233,14 +240,14 @@ function applyText() {
   $('lang').textContent = lang === 'en' ? 'العربية' : 'English';
 }
 function unlock() { document.body.classList.remove('locked'); $('login').style.display = 'none'; }
-try { if (sessionStorage.getItem('rpAdmin') === '1') unlock(); } catch (e) {}
+try { if (sessionStorage.getItem('admin:' + BIZ.slug) === '1') unlock(); } catch (e) {}
 $('lf').addEventListener('submit', function (e) {
   e.preventDefault();
   if (!/^\d{4,6}$/.test($('pin').value)) { $('lerr').textContent = T[lang].lErr; return; }
-  try { sessionStorage.setItem('rpAdmin', '1'); } catch (e2) {}
+  try { sessionStorage.setItem('admin:' + BIZ.slug, '1'); } catch (e2) {}
   unlock(); window.dispatchEvent(new Event('resize'));
 });
-$('out').onclick = function () { try { sessionStorage.removeItem('rpAdmin'); } catch (e) {} location.reload(); };
+$('out').onclick = function () { try { sessionStorage.removeItem('admin:' + BIZ.slug); } catch (e) {} location.reload(); };
 applyText();
 if (!document.body.classList.contains('locked')) {} else { $('pin').focus(); }
 </script>
@@ -257,10 +264,10 @@ const dayName = (d) => { const x = new Date(today); x.setDate(today.getDate() - 
 // Website bookings made on this device (from the customer page) join today's queue.
 function webBookings() {
   let L = [];
-  try { L = JSON.parse(localStorage.getItem('rpBookings') || '[]'); } catch (e) {}
+  try { L = JSON.parse(localStorage.getItem('bookings:' + BIZ.slug) || '[]'); } catch (e) {}
   return L.filter((b) => b && typeof b.time === 'string').map((b) => {
     const [hh, mm] = b.time.split(':').map(Number);
-    return { day: -(b.day || 0), hour: hh, min: mm || 0, suv: b.svc === 1, eng: !!(b.x && b.x[0]), nano: !!(b.x && b.x[1]), online: b.pay === 'card', free: false,
+    return { day: -(b.day || 0), hour: hh, min: mm || 0, svc: Math.max(0, Math.min(BIZ.services.length - 1, b.svc | 0)), x: BIZ.extras.map((e, i) => !!(b.x && b.x[i])), online: b.pay === 'card', free: false,
       total: Number(b.total) || 0, name: String(b.name || '').slice(0, 40), member: null, ref: String(b.ref || ''), web: true };
   });
 }
@@ -376,13 +383,13 @@ function segBar(parts) {
 }
 function mix() {
   const L = t(), s = slice(range).cur, n = s.length;
-  const suv = s.filter((b) => b.suv).length, on = s.filter((b) => b.online).length;
-  const eng = s.filter((b) => b.eng).length, nano = s.filter((b) => b.nano).length;
+  const on = s.filter((b) => b.online).length;
+  const SC = ['var(--s1)', 'var(--s2)', 'var(--s3)', 'var(--s4)'];
   const meter = (name, c) => `<div class="mrow"><div class="h"><span>${name}</span><b>${pct(c, n)}%</b></div><div class="meter"><i style="width:${pct(c, n)}%"></i></div></div>`;
   $('mix').innerHTML =
-    `<h3>${L.car}</h3>` + segBar([{ name: L.sedan, v: n - suv, c: 'var(--s1)' }, { name: L.suv, v: suv, c: 'var(--s2)' }]) +
+    `<h3>${L.car}</h3>` + segBar(L.svc.map((nm, i) => ({ name: nm, v: s.filter((b) => b.svc === i).length, c: SC[i] }))) +
     `<h3>${L.pay}</h3>` + segBar([{ name: L.payOnline, v: on, c: 'var(--s1)' }, { name: L.payShop, v: n - on, c: 'var(--s2)' }]) +
-    `<h3>${L.extras}</h3>` + meter(L.engine, eng) + meter(L.nano, nano);
+    (L.ext.length ? `<h3>${L.extras}</h3>` + L.ext.map((nm, i) => meter(nm, s.filter((b) => b.x[i]).length)).join('') : '');
 }
 
 function loyalty() {
@@ -390,8 +397,8 @@ function loyalty() {
   const active = members.filter((m) => m.visits > 0).length;
   const freeN = s.filter((b) => b.free).length;
   const rep = members.filter((m) => m.visits > 1).length;
-  const ready = members.filter((m) => m.stamps >= 9).length;
-  const near = members.filter((m) => m.stamps >= 6 && m.stamps < 9).sort((a, b) => b.stamps - a.stamps).slice(0, 5);
+  const ready = members.filter((m) => m.stamps >= TOTAL - 1).length;
+  const near = members.filter((m) => m.stamps >= Math.max(1, TOTAL - 4) && m.stamps < TOTAL - 1).sort((a, b) => b.stamps - a.stamps).slice(0, 5);
   const box = document.createElement('div');
   box.innerHTML = `<div class="lstats"><div><b>${fmt0(active)}</b><span>${L.active}</span></div><div><b>${fmt0(freeN)}</b><span>${L.freeGiven}</span></div><div><b>${pct(rep, active)}%</b><span>${L.repeat}</span></div></div><p class="sub" style="margin:0 0 10px">${L.ready(ready)}</p><h3 style="font-size:13px;color:var(--muted);font-weight:500;margin:0 0 4px">${L.near}</h3><ul class="near"></ul>`;
   const ul = box.querySelector('ul');
@@ -399,7 +406,7 @@ function loyalty() {
     const li = document.createElement('li');
     li.innerHTML = '<div class="h"><span><span class="nm"></span> <span class="id"></span></span><b></b></div><div class="meter"><i></i></div>';
     li.querySelector('.nm').textContent = m.name; li.querySelector('.id').textContent = m.id;
-    li.querySelector('b').textContent = m.stamps + '/9 ' + L.stamps; li.querySelector('i').style.width = (m.stamps / 9 * 100) + '%';
+    li.querySelector('b').textContent = m.stamps + '/' + (TOTAL - 1) + ' ' + L.stamps; li.querySelector('i').style.width = (m.stamps / (TOTAL - 1) * 100) + '%';
     ul.append(li);
   });
   $('loy').replaceChildren(box);
@@ -425,8 +432,8 @@ function queue() {
     if (!state.has(b.ref)) state.set(b.ref, b.web ? 0 : tm < nowH - 0.75 ? 2 : tm <= nowH ? 1 : 0);
     const st = state.get(b.ref); if (st === 0) w++; if (st === 2) dn++; booked += b.total;
     const tr = document.createElement('tr');
-    const cells = [String(b.hour).padStart(2, '0') + ':' + String(b.min).padStart(2, '0'), b.ref, b.name, b.suv ? L.suv : L.sedan,
-      [b.eng && L.engine, b.nano && L.nano].filter(Boolean).join(', ') || L.none, b.online ? L.payOnline : L.payShop, b.free ? L.free : fmt(b.total) + ' ' + L.omr];
+    const cells = [String(b.hour).padStart(2, '0') + ':' + String(b.min).padStart(2, '0'), b.ref, b.name, L.svc[b.svc],
+      L.ext.filter((e, i) => b.x[i]).join(', ') || L.none, b.online ? L.payOnline : L.payShop, b.free ? L.free : fmt(b.total) + ' ' + L.omr];
     cells.forEach((c, i) => { const td = document.createElement('td'); td.textContent = c; if (i === 6) td.className = 'n'; if (i === 2 && b.web) { const s = document.createElement('span'); s.className = 'src'; s.textContent = L.web; td.append(s); } tr.append(td); });
     const td = document.createElement('td'), chip = document.createElement('button');
     chip.type = 'button'; chip.className = 'chip ' + ['', 'wash', 'done'][st]; chip.innerHTML = ICON[st]; chip.append(L.st[st]);
