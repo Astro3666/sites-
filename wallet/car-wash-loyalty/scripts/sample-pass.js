@@ -8,7 +8,7 @@ const { buildPass } = require('../src/pass');
 const cfg = loadConfig();
 const creds = loadCredentials(cfg);
 const member = {
-  serial: 'sample-0001', member_id: 'CW-04821', auth_token: 'x'.repeat(32), name: process.argv[3] || 'SALIM',
+  serial: 'sample-0001', member_id: 'RP-04821', auth_token: 'x'.repeat(32), name: process.argv[3] || 'SALIM',
   stamps: Number(process.argv[2] ?? 4), rewards_redeemed: 0, last_stamp_at: new Date().toISOString(), updated_at: Date.now(),
 };
 fs.mkdirSync(path.join(ROOT, 'out'), { recursive: true });

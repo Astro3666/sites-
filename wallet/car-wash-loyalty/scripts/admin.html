@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cut">
+<title>RP Car Wash · Management</title>
+<meta name="description" content="RP Car Wash management dashboard: revenue, washes, busiest hours, loyalty members and today's queue.">
+<meta name="theme-color" content="#0A0A0B">
+<style>
+:root{--acc:#FF5500;--s1:#F55200;--s2:#3987e5;--ink:#F4F4F5;--ink2:#C4C4C8;--muted:#8E8E96;--bg:#0A0A0B;--panel:#141416;--line:#26262A;--grid:#232327;--base:#3A3A3F;--good:#0ca30c;--bad:#e66767;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,sans-serif;color:var(--ink);background:var(--bg)}
+html[lang=ar] body{font-family:-apple-system,"SF Arabic","Segoe UI",Tahoma,sans-serif}
+a{color:#FF7A33}
+button{font:inherit;color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+nav{position:sticky;top:0;z-index:20;background:rgba(10,10,11,.92);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:12px;height:60px}
+.brand img{height:30px;display:block}
+.tag{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-inline-start:1px solid var(--line);padding-inline-start:12px}
+.sp{flex:1}
+.nb{background:transparent;border:1px solid var(--line);border-radius:10px;padding:7px 12px;cursor:pointer;font-size:14px}
+.nb:hover{background:#18181B}
+main{padding:20px 0 48px}
+.top{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.top h1{margin:0;font-size:24px;line-height:1.2}
+.top p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 16px}
+.filters button{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:7px 14px;cursor:pointer;font-size:14px;color:var(--ink2)}
+.filters button[aria-pressed=true]{border-color:var(--acc);color:#fff;background:rgba(255,85,0,.14)}
+.note{font-size:13px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:8px 12px;margin:0 0 16px}
+.tiles{display:grid;grid-template-columns:1.4fr repeat(4,1fr);gap:12px;margin-bottom:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;min-width:0}
+.tile .l{font-size:13px;color:var(--muted)}
+.tile .v{font-size:26px;font-weight:650;margin-top:4px;line-height:1.15}
+.tile.hero .v{font-size:clamp(34px,3.4vw,48px);letter-spacing:-.02em}
+.tile .v small{font-size:.45em;font-weight:500;color:var(--ink2);margin-inline-start:4px}
+.tile .d{font-size:13px;margin-top:6px;color:var(--muted)}
+.up{color:var(--good)}.down{color:var(--bad)}
+.grid2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px;margin-bottom:12px}
+.card h2{margin:0;font-size:16px}
+.card .sub{margin:2px 0 12px;color:var(--muted);font-size:13px}
+.chart{position:relative;direction:ltr}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart text{fill:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.chart .lbl{fill:var(--ink);font-weight:600;font-size:12px}
+.chart .hit{fill:transparent;cursor:pointer;outline:none}
+.chart .bar{transition:opacity .12s;pointer-events:none}
+.chart text{pointer-events:none}
+.chart .hit:hover+.bar,.chart .hit:focus+.bar{opacity:.75}
+.tip{position:absolute;pointer-events:none;background:#202024;border:1px solid #34343A;border-radius:10px;padding:7px 10px;font-size:12px;white-space:nowrap;opacity:0;transition:opacity .1s;z-index:5;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.tip b{display:block;font-size:14px;color:#fff}
+.tip span{color:var(--ink2)}
+details{margin-top:10px;font-size:13px}
+summary{cursor:pointer;color:var(--muted)}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:8px 10px;text-align:start;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:500;font-size:12px}
+td.n,th.n{text-align:end;font-variant-numeric:tabular-nums}
+.seg{display:flex;gap:2px;height:28px;margin:6px 0 8px;direction:ltr}
+.seg div{border-radius:4px;color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;padding:0 8px;min-width:0;overflow:hidden;white-space:nowrap}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--ink2)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:6px;vertical-align:-1px}
+.mrow{margin-top:14px}
+.mrow .h{display:flex;justify-content:space-between;font-size:13px;color:var(--ink2)}
+.mrow .h b{color:var(--ink);font-weight:600}
+.meter{height:8px;border-radius:99px;background:rgba(245,82,0,.18);margin-top:6px;overflow:hidden;direction:ltr}
+.meter i{display:block;height:100%;border-radius:99px;background:var(--s1)}
+.mix h3{font-size:13px;color:var(--muted);font-weight:500;margin:14px 0 0}
+.mix h3:first-of-type{margin-top:4px}
+.lstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.lstats div{background:#0F0F11;border:1px solid var(--line);border-radius:12px;padding:10px}
+.lstats b{display:block;font-size:20px;font-weight:650}
+.lstats span{font-size:12px;color:var(--muted)}
+.near{list-style:none;margin:0;padding:0}
+.near li{padding:9px 0;border-top:1px solid var(--line)}
+.near .h{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.near .id{color:var(--muted);font-family:ui-monospace,Menlo,monospace;font-size:12px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer;background:transparent;color:var(--ink2)}
+.chip svg{width:12px;height:12px}
+.chip.wash{border-color:rgba(255,85,0,.6);color:#fff}
+.chip.done{border-color:rgba(12,163,12,.6);color:#BFF0BF}
+.src{font-size:11px;color:#FF7A33;border:1px solid rgba(255,122,51,.5);border-radius:6px;padding:1px 6px;margin-inline-start:6px}
+.qh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.qsum{font-size:13px;color:var(--muted)}
+footer{border-top:1px solid var(--line);padding:20px 0;color:var(--muted);font-size:13px}
+#login{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;padding:16px}
+#login form{width:100%;max-width:360px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px}
+#login img{height:34px;display:block;margin-bottom:18px}
+#login h1{margin:0 0 4px;font-size:20px}
+#login p{margin:0 0 16px;color:var(--muted);font-size:14px}
+#login label{font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+#login input{width:100%;font:inherit;font-size:22px;letter-spacing:.4em;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#0D0D0F;color:#fff;margin:6px 0 14px;text-align:center}
+#login input:focus{outline:2px solid var(--acc);outline-offset:1px}
+#login button{width:100%;border:0;border-radius:12px;padding:13px;background:var(--acc);color:#000;font-weight:700;font-size:16px;cursor:pointer}
+#login .err{color:var(--bad);font-size:13px;min-height:18px;margin:-6px 0 8px}
+#login .hint{margin:14px 0 0;font-size:12px}
+body.locked main,body.locked nav,body.locked footer{visibility:hidden}
+@media (max-width:980px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.tile.hero{grid-column:1/-1}.grid2{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:520px){.tag{display:none}.tile.hero .v{font-size:40px}.tile .v{font-size:22px}nav .wrap{gap:8px}.nb{padding:6px 10px}}
+</style>
+</head>
+<body class="locked">
+<div id="login">
+  <form id="lf" autocomplete="off">
+    <img src="__LOGO__" alt="RP Car Wash">
+    <h1 data-t="lH"></h1>
+    <p data-t="lP"></p>
+    <label for="pin" data-t="lPin"></label>
+    <input id="pin" inputmode="numeric" maxlength="6" autocomplete="one-time-code" aria-describedby="lerr">
+    <div class="err" id="lerr" role="alert"></div>
+    <button type="submit" data-t="lGo"></button>
+    <p class="hint" data-t="lHint"></p>
+  </form>
+</div>
+<nav><div class="wrap">
+  <a class="brand" href="../" aria-label="RP Car Wash"><img src="__LOGO__" alt="RP Car Wash"></a>
+  <span class="tag" data-t="tag"></span>
+  <span class="sp"></span>
+  <button class="nb" id="lang" type="button">العربية</button>
+  <button class="nb" id="out" type="button" data-t="out"></button>
+</div></nav>
+<main><div class="wrap">
+  <div class="top"><div><h1 data-t="h1"></h1><p id="asof"></p></div></div>
+  <div class="filters" role="group" aria-label="Date range">
+    <button type="button" data-r="1"></button><button type="button" data-r="7"></button><button type="button" data-r="30"></button><button type="button" data-r="90"></button>
+  </div>
+  <p class="note" data-t="sample"></p>
+
+  <section class="tiles" id="tiles"></section>
+
+  <section class="grid2">
+    <div class="card"><h2 data-t="revH"></h2><p class="sub" id="revSub"></p><div class="chart" id="cRev"></div></div>
+    <div class="card mix"><h2 data-t="mixH"></h2><p class="sub" data-t="mixS"></p><div id="mix"></div></div>
+  </section>
+
+  <section class="grid2">
+    <div class="card"><h2 data-t="hrsH"></h2><p class="sub" id="hrsSub"></p><div class="chart" id="cHrs"></div></div>
+    <div class="card"><h2 data-t="loyH"></h2><p class="sub" data-t="loyS"></p><div id="loy"></div></div>
+  </section>
+
+  <section class="card">
+    <div class="qh"><h2 data-t="qH"></h2><span class="qsum" id="qsum"></span></div>
+    <p class="sub" data-t="qS"></p>
+    <div class="tw"><table id="queue"></table></div>
+  </section>
+</div></main>
+<footer><div class="wrap"><span data-t="foot"></span> · <a href="../" data-t="site"></a></div></footer>
+<script>
+// ---------- strings ----------
+var T = {
+  en: {
+    lH: 'Management login', lP: 'RP Car Wash, Muscat', lPin: 'Staff PIN', lGo: 'Sign in', lHint: 'Demo preview: any 4-digit PIN opens it.', lErr: 'Enter a 4 to 6 digit PIN.',
+    tag: 'Management', out: 'Sign out', h1: 'Business overview', asof: 'Updated', sample: 'Sample data for the preview. Once the booking server is live, these numbers come from real bookings and payments.',
+    r1: 'Today', r7: '7 days', r30: '30 days', r90: '90 days',
+    revenue: 'Revenue', washes: 'Washes', avg: 'Average ticket', members: 'New loyalty members', online: 'Paid online',
+    vsPrev: 'vs previous period', vsYday: 'vs same time yesterday', omr: 'OMR',
+    revH: 'Revenue', revByHour: 'OMR per hour, today', revByDay: 'OMR per day', revByWeek: 'OMR per week',
+    mixH: 'What customers buy', mixS: 'Share of washes in the selected range', car: 'Car type', pay: 'Payment', extras: 'Extras taken',
+    sedan: 'Sedan', suv: 'SUV', engine: 'Engine bay & under car', nano: 'Special nano soap', payOnline: 'Online', payShop: 'At the shop',
+    hrsH: 'Busiest hours', hrsSub: 'Washes started per hour', peak: 'Busiest',
+    loyH: 'Loyalty card', loyS: 'Apple Wallet stamp cards', active: 'Active cards', freeGiven: 'Free washes given', repeat: 'Repeat customers',
+    near: 'Close to a free wash', stamps: 'stamps', ready: function (n) { return n + ' customers have a free wash ready on their card.'; },
+    qH: "Today's queue", qS: 'Tap a status to move a car along: waiting, washing, done.', qsum: function (w, d, r) { return w + ' waiting · ' + d + ' done · ' + r + ' OMR booked'; },
+    cols: ['Time', 'Ref', 'Customer', 'Car', 'Extras', 'Payment', 'Total', 'Status'],
+    st: ['Waiting', 'Washing', 'Done'], web: 'Website', none: 'None', free: 'Free (loyalty)',
+    tbl: 'Show as table', period: 'Period', value: 'Value', hour: 'Hour',
+    foot: 'RP Car Wash, Muscat. Website and loyalty card design © ' + new Date().getFullYear() + ' Mazen. All rights reserved.', site: 'Customer website'
+  },
+  ar: {
+    lH: 'دخول الإدارة', lP: 'آر بي لغسيل السيارات، مسقط', lPin: 'رمز الموظف', lGo: 'دخول', lHint: 'معاينة تجريبية: أي رمز من ٤ أرقام يفتح اللوحة.', lErr: 'أدخل رمزاً من ٤ إلى ٦ أرقام.',
+    tag: 'الإدارة', out: 'خروج', h1: 'نظرة على العمل', asof: 'آخر تحديث', sample: 'بيانات تجريبية للمعاينة. عند تشغيل خادم الحجز تأتي الأرقام من الحجوزات والمدفوعات الحقيقية.',
+    r1: 'اليوم', r7: '٧ أيام', r30: '٣٠ يوماً', r90: '٩٠ يوماً',
+    revenue: 'الإيرادات', washes: 'الغسلات', avg: 'متوسط الفاتورة', members: 'أعضاء ولاء جدد', online: 'دفع أونلاين',
+    vsPrev: 'مقارنة بالفترة السابقة', vsYday: 'مقارنة بنفس الوقت أمس', omr: 'ر.ع',
+    revH: 'الإيرادات', revByHour: 'ر.ع لكل ساعة، اليوم', revByDay: 'ر.ع لكل يوم', revByWeek: 'ر.ع لكل أسبوع',
+    mixH: 'ماذا يطلب العملاء', mixS: 'نسبة الغسلات في الفترة المحددة', car: 'نوع السيارة', pay: 'الدفع', extras: 'الإضافات',
+    sedan: 'سيدان', suv: 'دفع رباعي', engine: 'المحرك وأسفل السيارة', nano: 'صابون النانو الخاص', payOnline: 'أونلاين', payShop: 'في المحل',
+    hrsH: 'أوقات الذروة', hrsSub: 'عدد الغسلات في كل ساعة', peak: 'الأكثر ازدحاماً',
+    loyH: 'بطاقة الولاء', loyS: 'بطاقات الأختام في Apple Wallet', active: 'بطاقات نشطة', freeGiven: 'غسلات مجانية', repeat: 'عملاء متكررون',
+    near: 'قريبون من الغسلة المجانية', stamps: 'أختام', ready: function (n) { return n + ' عميلاً لديهم غسلة مجانية جاهزة في بطاقتهم.'; },
+    qH: 'طابور اليوم', qS: 'اضغط على الحالة لنقل السيارة: انتظار، غسيل، تم.', qsum: function (w, d, r) { return w + ' في الانتظار · ' + d + ' تم · ' + r + ' ر.ع محجوز'; },
+    cols: ['الوقت', 'الرقم', 'العميل', 'السيارة', 'الإضافات', 'الدفع', 'المبلغ', 'الحالة'],
+    st: ['انتظار', 'غسيل', 'تم'], web: 'الموقع', none: 'لا يوجد', free: 'مجانية (ولاء)',
+    tbl: 'عرض كجدول', period: 'الفترة', value: 'القيمة', hour: 'الساعة',
+    foot: 'آر بي لغسيل السيارات، مسقط. تصميم الموقع وبطاقة الولاء © ' + new Date().getFullYear() + ' مازن. جميع الحقوق محفوظة.', site: 'موقع العملاء'
+  }
+};
+
+// ---------- sample data (deterministic, relative to today) ----------
+var DATA = (function () {
+  var seed = 20261111;
+  function rnd() { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
+  var NAMES = ['Salim', 'Ahmed', 'Khalid', 'Fatma', 'Said', 'Maryam', 'Hamed', 'Aisha', 'Yousuf', 'Noor', 'Talal', 'Huda', 'Badr', 'Zainab', 'Ali', 'Muna', 'Nasser', 'Rashid', 'Sara', 'Hilal'];
+  var HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+  var HW = [3, 5, 6, 5, 2, 2, 3, 4, 6, 8, 9, 8, 5];
+  var HSUM = HW.reduce(function (a, b) { return a + b; }, 0);
+  var DAYS = 181; // 90 shown + 90 for comparison + today
+  var today = new Date(); today.setHours(0, 0, 0, 0);
+  var members = [];
+  for (var m = 0; m < 260; m++) members.push({ id: 'RP-' + String(10000 + Math.floor(rnd() * 89999)), name: NAMES[m % NAMES.length], stamps: 0, free: 0, visits: 0, joined: Math.floor(rnd() * DAYS) });
+  var list = [];
+  for (var d = DAYS - 1; d >= 0; d--) {
+    var date = new Date(today); date.setDate(today.getDate() - d);
+    var dow = date.getDay(); // Fri 5, Sat 6 busiest in Oman
+    var base = dow === 5 ? 34 : dow === 6 ? 30 : dow === 4 ? 28 : 22;
+    var trend = 1 + 0.18 * (DAYS - d) / DAYS;
+    var n = Math.round(base * trend * (0.85 + rnd() * 0.3));
+    for (var i = 0; i < n; i++) {
+      var r = rnd() * HSUM, h = 0; while (r > HW[h]) { r -= HW[h]; h++; }
+      var suv = rnd() < 0.42, eng = rnd() < 0.24, nano = rnd() < 0.31;
+      var mem = null;
+      if (rnd() < 0.55) { var c = members.filter(function (x) { return x.joined >= d; }); if (c.length) mem = c[Math.floor(rnd() * c.length)]; }
+      var free = false;
+      if (mem) { mem.visits++; if (mem.stamps >= 9) { free = true; mem.stamps = 0; mem.free++; } else mem.stamps++; }
+      var price = free ? 0 : (suv ? 2 : 1.5);
+      var total = price + (eng ? 1 : 0) + (nano ? 1 : 0);
+      list.push({ day: d, hour: HOURS[h], min: [0, 15, 30, 45][Math.floor(rnd() * 4)], suv: suv, eng: eng, nano: nano, online: rnd() < 0.58, free: free, total: total,
+        name: mem ? mem.name : NAMES[Math.floor(rnd() * NAMES.length)], member: mem ? mem.id : null, ref: 'RP-B' + String(10000 + Math.floor(rnd() * 89999)) });
+    }
+  }
+  return { list: list, members: members, today: today, HOURS: HOURS };
+})();
+
+// ---------- login (demo) ----------
+var lang = 'en';
+function $(id) { return document.getElementById(id); }
+function applyText() {
+  var t = T[lang];
+  document.querySelectorAll('[data-t]').forEach(function (el) { el.textContent = t[el.dataset.t]; });
+  document.querySelectorAll('[data-r]').forEach(function (el) { el.textContent = t['r' + el.dataset.r]; });
+  $('lang').textContent = lang === 'en' ? 'العربية' : 'English';
+}
+function unlock() { document.body.classList.remove('locked'); $('login').style.display = 'none'; }
+try { if (sessionStorage.getItem('rpAdmin') === '1') unlock(); } catch (e) {}
+$('lf').addEventListener('submit', function (e) {
+  e.preventDefault();
+  if (!/^\d{4,6}$/.test($('pin').value)) { $('lerr').textContent = T[lang].lErr; return; }
+  try { sessionStorage.setItem('rpAdmin', '1'); } catch (e2) {}
+  unlock(); window.dispatchEvent(new Event('resize'));
+});
+$('out').onclick = function () { try { sessionStorage.removeItem('rpAdmin'); } catch (e) {} location.reload(); };
+applyText();
+if (!document.body.classList.contains('locked')) {} else { $('pin').focus(); }
+</script>
+<script type="module">
+const { list, members, today, HOURS } = DATA;
+const t = () => T[lang];
+let range = 7;
+const fmt = (v, dp = 3) => v.toLocaleString('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp });
+const fmt0 = (v) => Math.round(v).toLocaleString('en-US');
+const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
+const nowH = new Date().getHours() + new Date().getMinutes() / 60;
+const dayName = (d) => { const x = new Date(today); x.setDate(today.getDate() - d); return x.toLocaleDateString(lang === 'ar' ? 'ar-OM' : 'en-GB', { day: 'numeric', month: 'short' }); };
+
+// Website bookings made on this device (from the customer page) join today's queue.
+function webBookings() {
+  let L = [];
+  try { L = JSON.parse(localStorage.getItem('rpBookings') || '[]'); } catch (e) {}
+  return L.filter((b) => b && typeof b.time === 'string').map((b) => {
+    const [hh, mm] = b.time.split(':').map(Number);
+    return { day: -(b.day || 0), hour: hh, min: mm || 0, suv: b.svc === 1, eng: !!(b.x && b.x[0]), nano: !!(b.x && b.x[1]), online: b.pay === 'card', free: false,
+      total: Number(b.total) || 0, name: String(b.name || '').slice(0, 40), member: null, ref: String(b.ref || ''), web: true };
+  });
+}
+
+// Slice: for "today" compare with yesterday up to the same hour; otherwise the previous N days.
+function slice(n) {
+  if (n === 1) {
+    const cur = list.filter((b) => b.day === 0);
+    const prev = list.filter((b) => b.day === 1 && b.hour + b.min / 60 <= nowH);
+    return { cur, prev, curNow: cur.filter((b) => b.hour + b.min / 60 <= nowH) };
+  }
+  return { cur: list.filter((b) => b.day >= 1 && b.day <= n), prev: list.filter((b) => b.day > n && b.day <= 2 * n) };
+}
+const sum = (a) => a.reduce((s, b) => s + b.total, 0);
+
+function delta(cur, prev, good = true) {
+  if (!prev) return '<span class="d">–</span>';
+  const ch = (cur - prev) / prev * 100, up = ch >= 0;
+  const cls = (up === good) ? 'up' : 'down';
+  return `<span class="${cls}">${up ? '▲' : '▼'} ${Math.abs(ch).toFixed(1)}%</span>`;
+}
+
+function tiles() {
+  const s = slice(range), L = t();
+  const cur = range === 1 ? s.curNow : s.cur;
+  const rev = sum(cur), prevRev = sum(s.prev);
+  const avg = cur.length ? rev / cur.length : 0, pavg = s.prev.length ? prevRev / s.prev.length : 0;
+  const newM = members.filter((m) => range === 1 ? m.joined === 0 : m.joined >= 1 && m.joined <= range).length;
+  const prevM = members.filter((m) => range === 1 ? m.joined === 1 : m.joined > range && m.joined <= 2 * range).length;
+  const on = pct(cur.filter((b) => b.online).length, cur.length), pon = pct(s.prev.filter((b) => b.online).length, s.prev.length);
+  const vs = range === 1 ? L.vsYday : L.vsPrev;
+  const tile = (cls, label, v, unit, d) => `<div class="card tile ${cls}"><div class="l">${label}</div><div class="v">${v}${unit ? `<small>${unit}</small>` : ''}</div><div class="d">${d} ${vs}</div></div>`;
+  $('tiles').innerHTML =
+    tile('hero', L.revenue, fmt(rev), L.omr, delta(rev, prevRev)) +
+    tile('', L.washes, fmt0(cur.length), '', delta(cur.length, s.prev.length)) +
+    tile('', L.avg, fmt(avg), L.omr, delta(avg, pavg)) +
+    tile('', L.members, fmt0(newM), '', delta(newM, prevM)) +
+    tile('', L.online, on + '%', '', delta(on, pon));
+}
+
+// ---------- column chart (single series, hover tooltip, table view) ----------
+function niceStep(v) { if (v <= 0) return 1; const p = Math.pow(10, Math.floor(Math.log10(v))); for (const m of [1, 2, 5, 10]) if (m * p >= v) return Math.max(1, m * p); return 10 * p; }
+function columns(el, rows, opts) {
+  const W = Math.max(280, el.clientWidth || 600), H = opts.h || 240, padL = 40, padR = 8, padT = 22, padB = 26;
+  const iw = W - padL - padR, ih = H - padT - padB;
+  const raw = Math.max(1, ...rows.map((r) => r.v)) * 1.1, step = niceStep(raw / 4), ticks = Math.ceil(raw / step), max = step * ticks;
+  const band = iw / rows.length, bw = Math.max(3, Math.min(24, band * 0.62));
+  const y = (v) => padT + ih - (v / max) * ih;
+  let g = '';
+  for (let i = 0; i <= ticks; i++) {
+    const v = step * i, yy = y(v);
+    g += `<line x1="${padL}" x2="${W - padR}" y1="${yy}" y2="${yy}" stroke="${i ? 'var(--grid)' : 'var(--base)'}" stroke-width="1"/>`;
+    g += `<text x="${padL - 6}" y="${yy + 4}" text-anchor="end">${opts.yfmt(v)}</text>`;
+  }
+  const every = Math.ceil(rows.length / Math.max(2, Math.floor(iw / 46)));
+  let peak = 0; rows.forEach((r, i) => { if (r.v > rows[peak].v) peak = i; });
+  let bars = '';
+  rows.forEach((r, i) => {
+    const cx = padL + band * i + band / 2, x = cx - bw / 2, top = y(r.v), h = padT + ih - top, rr = Math.min(4, bw / 2, h);
+    const d = h <= 0 ? '' : `M${x} ${padT + ih}V${top + rr}Q${x} ${top} ${x + rr} ${top}H${x + bw - rr}Q${x + bw} ${top} ${x + bw} ${top + rr}V${padT + ih}Z`;
+    bars += `<rect class="hit" x="${padL + band * i}" y="${padT}" width="${band}" height="${ih + 4}" tabindex="0" data-i="${i}" aria-label="${r.k}: ${opts.vfmt(r.v)}"/><path class="bar" d="${d}" fill="var(--s1)"/>`;
+    if (i % every === 0) bars += `<text x="${cx}" y="${H - 8}" text-anchor="middle">${r.k}</text>`;
+  });
+  const p = rows[peak], px = padL + band * peak + band / 2;
+  const lab = p.v > 0 ? `<text class="lbl" x="${Math.min(W - padR - 30, Math.max(padL + 30, px))}" y="${y(p.v) - 7}" text-anchor="middle">${opts.peakfmt(p.v)}</text>` : '';
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${opts.title}">${g}${bars}${lab}</svg><div class="tip"></div>
+    <details><summary>${t().tbl}</summary><div class="tw"><table><thead><tr><th>${opts.kh}</th><th class="n">${opts.vh}</th></tr></thead><tbody></tbody></table></div></details>`;
+  const tb = el.querySelector('tbody');
+  rows.forEach((r) => { const tr = document.createElement('tr'); const a = document.createElement('td'); a.textContent = r.k; const b = document.createElement('td'); b.className = 'n'; b.textContent = opts.vfmt(r.v); tr.append(a, b); tb.append(tr); });
+  const tip = el.querySelector('.tip'), svg = el.querySelector('svg');
+  const show = (e) => {
+    const i = +e.target.dataset.i; if (Number.isNaN(i)) return;
+    tip.replaceChildren(); const b = document.createElement('b'); b.textContent = opts.vfmt(rows[i].v); const s = document.createElement('span'); s.textContent = rows[i].full || rows[i].k; tip.append(b, s);
+    const sc = svg.getBoundingClientRect().width / W, cx = (padL + band * i + band / 2) * sc;
+    tip.style.opacity = 1; const tw = tip.offsetWidth;
+    tip.style.left = Math.max(0, Math.min(svg.clientWidth - tw, cx - tw / 2)) + 'px'; tip.style.top = Math.max(0, y(rows[i].v) * sc - 58) + 'px';
+  };
+  const hide = () => { tip.style.opacity = 0; };
+  svg.querySelectorAll('.hit').forEach((h) => { h.addEventListener('pointerenter', show); h.addEventListener('focus', show); h.addEventListener('pointerleave', hide); h.addEventListener('blur', hide); });
+}
+
+function revenueChart() {
+  const L = t(), el = $('cRev');
+  let rows;
+  if (range === 1) {
+    $('revSub').textContent = L.revByHour;
+    rows = HOURS.map((h) => ({ k: String(h).padStart(2, '0'), full: String(h).padStart(2, '0') + ':00', v: sum(list.filter((b) => b.day === 0 && b.hour === h)) }));
+  } else if (range === 90) {
+    $('revSub').textContent = L.revByWeek;
+    rows = [];
+    for (let w = 12; w >= 0; w--) { const from = w * 7 + 7, to = w * 7 + 1; const v = sum(list.filter((b) => b.day >= to && b.day <= Math.min(90, from))); rows.push({ k: dayName(Math.min(90, from)), full: dayName(Math.min(90, from)) + ' – ' + dayName(to), v }); }
+  } else {
+    $('revSub').textContent = L.revByDay;
+    rows = []; for (let d = range; d >= 1; d--) rows.push({ k: dayName(d), v: sum(list.filter((b) => b.day === d)) });
+  }
+  columns(el, rows, { title: L.revH, kh: L.period, vh: L.value + ' (' + L.omr + ')', yfmt: (v) => fmt0(v), vfmt: (v) => fmt(v) + ' ' + L.omr, peakfmt: (v) => fmt0(v) });
+}
+
+function hoursChart() {
+  const L = t(), s = slice(range).cur;
+  const rows = HOURS.map((h) => ({ k: String(h).padStart(2, '0'), full: String(h).padStart(2, '0') + ':00 – ' + String(h + 1).padStart(2, '0') + ':00', v: s.filter((b) => b.hour === h).length }));
+  const pk = rows.reduce((a, r) => (r.v > a.v ? r : a), rows[0]);
+  $('hrsSub').textContent = L.hrsSub + ' · ' + L.peak + ' ' + pk.full;
+  columns($('cHrs'), rows, { h: 200, title: L.hrsH, kh: L.hour, vh: L.washes, yfmt: fmt0, vfmt: (v) => fmt0(v) + ' ' + L.washes.toLowerCase(), peakfmt: fmt0 });
+}
+
+// ---------- mix: tall segmented bars + meters ----------
+function segBar(parts) {
+  const total = parts.reduce((a, p) => a + p.v, 0) || 1;
+  const blocks = parts.filter((p) => p.v > 0).map((p) => { const sh = Math.round(p.v / total * 100); return `<div style="flex:${p.v} 1 0;background:${p.c}" title="${p.name}: ${sh}%" aria-label="${p.name}: ${sh}%">${sh >= 12 ? sh + '%' : ''}</div>`; }).join('');
+  const leg = parts.map((p) => `<span><i style="background:${p.c}"></i>${p.name} · ${Math.round(p.v / total * 100)}%</span>`).join('');
+  return `<div class="seg" role="img">${blocks}</div><div class="legend">${leg}</div>`;
+}
+function mix() {
+  const L = t(), s = slice(range).cur, n = s.length;
+  const suv = s.filter((b) => b.suv).length, on = s.filter((b) => b.online).length;
+  const eng = s.filter((b) => b.eng).length, nano = s.filter((b) => b.nano).length;
+  const meter = (name, c) => `<div class="mrow"><div class="h"><span>${name}</span><b>${pct(c, n)}%</b></div><div class="meter"><i style="width:${pct(c, n)}%"></i></div></div>`;
+  $('mix').innerHTML =
+    `<h3>${L.car}</h3>` + segBar([{ name: L.sedan, v: n - suv, c: 'var(--s1)' }, { name: L.suv, v: suv, c: 'var(--s2)' }]) +
+    `<h3>${L.pay}</h3>` + segBar([{ name: L.payOnline, v: on, c: 'var(--s1)' }, { name: L.payShop, v: n - on, c: 'var(--s2)' }]) +
+    `<h3>${L.extras}</h3>` + meter(L.engine, eng) + meter(L.nano, nano);
+}
+
+function loyalty() {
+  const L = t(), s = slice(range).cur;
+  const active = members.filter((m) => m.visits > 0).length;
+  const freeN = s.filter((b) => b.free).length;
+  const rep = members.filter((m) => m.visits > 1).length;
+  const ready = members.filter((m) => m.stamps >= 9).length;
+  const near = members.filter((m) => m.stamps >= 6 && m.stamps < 9).sort((a, b) => b.stamps - a.stamps).slice(0, 5);
+  const box = document.createElement('div');
+  box.innerHTML = `<div class="lstats"><div><b>${fmt0(active)}</b><span>${L.active}</span></div><div><b>${fmt0(freeN)}</b><span>${L.freeGiven}</span></div><div><b>${pct(rep, active)}%</b><span>${L.repeat}</span></div></div><p class="sub" style="margin:0 0 10px">${L.ready(ready)}</p><h3 style="font-size:13px;color:var(--muted);font-weight:500;margin:0 0 4px">${L.near}</h3><ul class="near"></ul>`;
+  const ul = box.querySelector('ul');
+  near.forEach((m) => {
+    const li = document.createElement('li');
+    li.innerHTML = '<div class="h"><span><span class="nm"></span> <span class="id"></span></span><b></b></div><div class="meter"><i></i></div>';
+    li.querySelector('.nm').textContent = m.name; li.querySelector('.id').textContent = m.id;
+    li.querySelector('b').textContent = m.stamps + '/9 ' + L.stamps; li.querySelector('i').style.width = (m.stamps / 9 * 100) + '%';
+    ul.append(li);
+  });
+  $('loy').replaceChildren(box);
+}
+
+// ---------- today's queue ----------
+const ICON = [
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-7 6-11z"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+];
+const state = new Map();
+function queue() {
+  const L = t();
+  const rows = webBookings().filter((b) => b.day === 0).concat(list.filter((b) => b.day === 0)).sort((a, b) => (a.hour * 60 + a.min) - (b.hour * 60 + b.min));
+  const tb = $('queue'); tb.replaceChildren();
+  const th = document.createElement('thead'), hr = document.createElement('tr');
+  L.cols.forEach((c, i) => { const e = document.createElement('th'); e.textContent = c; if (i === 6) e.className = 'n'; hr.append(e); }); th.append(hr); tb.append(th);
+  const body = document.createElement('tbody');
+  let w = 0, dn = 0, booked = 0;
+  rows.forEach((b) => {
+    const tm = b.hour + b.min / 60;
+    if (!state.has(b.ref)) state.set(b.ref, b.web ? 0 : tm < nowH - 0.75 ? 2 : tm <= nowH ? 1 : 0);
+    const st = state.get(b.ref); if (st === 0) w++; if (st === 2) dn++; booked += b.total;
+    const tr = document.createElement('tr');
+    const cells = [String(b.hour).padStart(2, '0') + ':' + String(b.min).padStart(2, '0'), b.ref, b.name, b.suv ? L.suv : L.sedan,
+      [b.eng && L.engine, b.nano && L.nano].filter(Boolean).join(', ') || L.none, b.online ? L.payOnline : L.payShop, b.free ? L.free : fmt(b.total) + ' ' + L.omr];
+    cells.forEach((c, i) => { const td = document.createElement('td'); td.textContent = c; if (i === 6) td.className = 'n'; if (i === 2 && b.web) { const s = document.createElement('span'); s.className = 'src'; s.textContent = L.web; td.append(s); } tr.append(td); });
+    const td = document.createElement('td'), chip = document.createElement('button');
+    chip.type = 'button'; chip.className = 'chip ' + ['', 'wash', 'done'][st]; chip.innerHTML = ICON[st]; chip.append(L.st[st]);
+    chip.onclick = () => { state.set(b.ref, (st + 1) % 3); queue(); };
+    td.append(chip); tr.append(td); body.append(tr);
+  });
+  tb.append(body);
+  $('qsum').textContent = L.qsum(w, dn, fmt(booked));
+}
+
+function renderAll() {
+  applyText();
+  document.querySelectorAll('[data-r]').forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.r === range)));
+  $('asof').textContent = t().asof + ' ' + new Date().toLocaleString(lang === 'ar' ? 'ar-OM' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+  tiles(); revenueChart(); mix(); hoursChart(); loyalty(); queue();
+}
+document.querySelector('.filters').addEventListener('click', (e) => { const r = e.target.dataset && e.target.dataset.r; if (r) { range = +r; renderAll(); } });
+$('lang').onclick = () => { lang = lang === 'en' ? 'ar' : 'en'; document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; renderAll(); };
+let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { revenueChart(); hoursChart(); }, 120); });
+renderAll();
+</script>
+</body>
+</html>

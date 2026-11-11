@@ -48,7 +48,6 @@ function passJson(cfg, member) {
     webServiceURL: `${cfg.server.publicUrl.replace(/\/$/, '')}/wallet`,
     organizationName: b.nameEn,
     description: 'loyalty_description',
-    logoText: 'business_name',
     backgroundColor: hexToRgb(b.colors.background),
     foregroundColor: hexToRgb(b.colors.foreground),
     labelColor: hexToRgb(b.colors.label),
@@ -170,8 +169,8 @@ function buildPass(cfg, creds, member) {
   const bg = cfg.business.colors.background;
   const files = {
     'pass.json': Buffer.from(JSON.stringify(pj, null, 2)),
-    ...art.baseImages(bg),
-    ...art.stripImages(bg, stamps, total),
+    ...art.baseImages(),
+    ...art.stripImages(bg, stamps, total, cfg.business.colors.accent || art.ORANGE),
     ...localisations(cfg, member, stamps),
   };
   const manifest = Buffer.from(JSON.stringify(Object.fromEntries(Object.entries(files).map(([k, v]) => [k, sha1(v)]))));

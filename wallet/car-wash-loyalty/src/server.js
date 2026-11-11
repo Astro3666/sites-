@@ -9,6 +9,7 @@ const crypto = require('node:crypto');
 const { loadConfig, loadCredentials, ROOT } = require('./config');
 const { openDb } = require('./db');
 const { buildPass } = require('./pass');
+const art = require('./art');
 const { createPusher } = require('./apns');
 
 const cfg = loadConfig();
@@ -98,7 +99,7 @@ function page(name) {
     const b = cfg.business;
     pages[name] = fs.readFileSync(path.join(ROOT, 'public', name), 'utf8')
       .replaceAll('{{NAME_EN}}', b.nameEn).replaceAll('{{NAME_AR}}', b.nameAr)
-      .replaceAll('{{BG}}', b.colors.background).replaceAll('{{TOTAL}}', String(TOTAL))
+      .replaceAll('{{BG}}', b.colors.background).replaceAll('{{ACCENT}}', b.colors.accent || art.ORANGE).replaceAll('{{LOGO}}', art.dataUri('logo-wide-600.png')).replaceAll('{{TOTAL}}', String(TOTAL))
       .replaceAll('{{PAID}}', String(TOTAL - 1))
       .replaceAll('{{YEAR}}', String(new Date().getFullYear()))
       .replaceAll('{{CREDIT_EN}}', cfg.credit.en).replaceAll('{{CREDIT_AR}}', cfg.credit.ar);

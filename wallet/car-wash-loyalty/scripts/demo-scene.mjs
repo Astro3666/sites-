@@ -14,7 +14,8 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 const canvas = document.getElementById('scene');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const LOW = matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 700 || (navigator.hardwareConcurrency || 8) <= 4;
-const BLUE = '#1D3FD1';
+const BG = '#0A0A0B', CARD = '#141416', ORANGE = '#FF5500', LABEL = '#FF7A33';
+const logoImg = new Image(); logoImg.src = document.querySelector('.brand img').src;
 
 let renderer;
 try {
@@ -31,16 +32,16 @@ if (renderer) {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(BLUE);
+  scene.background = new THREE.Color(BG);
   scene.fog = new THREE.Fog(scene.background, 9, 18);
   const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 60);
   camera.position.set(0, 0.1, 11.5);
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 
-  scene.add(new THREE.HemisphereLight(0xdfe6ff, 0x0a1a66, 0.6));
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x221005, 0.6));
   const key = new THREE.DirectionalLight(0xffffff, 1.2); key.position.set(3, 5, 6); scene.add(key);
-  const rim = new THREE.PointLight(0x8fb0ff, 30, 20); rim.position.set(-4, 2, -3); scene.add(rim);
+  const rim = new THREE.PointLight(0xff5500, 40, 20); rim.position.set(-4, 2, -3); scene.add(rim);
 
   // ---------- the card face, drawn on a 2D canvas so it matches the real pass ----------
   const W = 340, H = 460, K = LOW ? 2.4 : 3.2; // pass points, texture scale
@@ -72,36 +73,32 @@ if (renderer) {
     const L = state.L, rtl = state.lang === 'ar';
     g.setTransform(K, 0, 0, K, 0, 0);
     g.clearRect(0, 0, W, H);
-    g.fillStyle = BLUE; rr(0, 0, W, H, 16); g.fill();
+    g.fillStyle = CARD; rr(0, 0, W, H, 16); g.fill();
     g.direction = rtl ? 'rtl' : 'ltr';
     const S = rtl ? (x) => W - x : (x) => x;           // mirror x for Arabic
     const A = (a) => (rtl ? (a === 'left' ? 'right' : a === 'right' ? 'left' : a) : a);
     // logo
-    g.save(); g.translate(S(14) - (rtl ? 36 : 0), 12); g.scale(36 / 60, 36 / 60);
-    g.fillStyle = '#fff'; g.fill(drop);
-    g.save(); g.translate(28, 41); g.scale(0.78, 0.78); g.strokeStyle = BLUE; g.lineWidth = 2.6; g.lineCap = g.lineJoin = 'round'; g.stroke(carPath); g.restore();
-    spark(51, 12, 6); spark(57, 24, 3.2); g.restore();
-    g.fillStyle = '#fff'; g.textBaseline = 'alphabetic';
-    g.font = `600 17px ${FONT}`; g.textAlign = A('left'); g.fillText(L.name || 'Car Wash', S(58), 37);
-    g.textAlign = A('right'); g.fillStyle = '#DCE3FF'; g.font = `600 10px ${FONT}`;
+    if (logoImg.complete && logoImg.naturalWidth) g.drawImage(logoImg, rtl ? W - 14 - 150 : 14, 20, 150, 150 * 444 / 2340);
+    g.textBaseline = 'alphabetic';
+    g.textAlign = A('right'); g.fillStyle = LABEL; g.font = `600 10px ${FONT}`;
     g.fillText((L.stamps || 'Stamps').toUpperCase(), S(W - 14), 24);
     g.fillStyle = '#fff'; g.font = `500 22px ${FONT}`; g.fillText(`${shown}/10`, S(W - 14), 49);
     // strip
-    g.fillStyle = 'rgba(255,255,255,0.12)'; rr(16 * SX, STRIP_Y + 6 * SX, W - 32 * SX, 111 * SX, 16 * SX); g.fill();
+    g.fillStyle = 'rgba(255,255,255,0.06)'; g.strokeStyle = 'rgba(255,85,0,0.35)'; g.lineWidth = 1; rr(16 * SX, STRIP_Y + 6 * SX, W - 32 * SX, 111 * SX, 16 * SX); g.fill(); g.stroke();
     for (let i = 0; i < 10; i++) {
       const p = slot(i, rtl);
       g.save(); g.translate(p.x, p.y);
       if (i < shown) {
-        g.fillStyle = '#fff'; g.beginPath(); g.arc(0, 0, p.r, 0, Math.PI * 2); g.fill();
-        g.translate(0, 1.5 * SX); g.scale(0.95 * SX, 0.95 * SX); g.strokeStyle = BLUE; g.lineWidth = 2.6; g.lineCap = g.lineJoin = 'round'; g.stroke(carPath);
+        g.fillStyle = ORANGE; g.beginPath(); g.arc(0, 0, p.r, 0, Math.PI * 2); g.fill();
+        g.translate(0, 1.5 * SX); g.scale(0.95 * SX, 0.95 * SX); g.strokeStyle = '#fff'; g.lineWidth = 2.6; g.lineCap = g.lineJoin = 'round'; g.stroke(carPath);
       } else if (i === 9 && shown >= 9) {
-        g.fillStyle = `rgba(255,255,255,${0.18 + 0.25 * sparkle})`; g.strokeStyle = '#fff'; g.lineWidth = 2.4;
+        g.fillStyle = `rgba(255,85,0,${0.15 + 0.25 * sparkle})`; g.strokeStyle = ORANGE; g.lineWidth = 2.4;
         g.beginPath(); g.arc(0, 0, p.r, 0, Math.PI * 2); g.fill(); g.stroke();
-        g.fillStyle = '#fff'; g.rotate(sparkle * 0.6); spark(0, 0, 11 * SX * (1 + 0.15 * sparkle));
+        g.fillStyle = ORANGE; g.rotate(sparkle * 0.6); spark(0, 0, 11 * SX * (1 + 0.15 * sparkle));
       } else {
-        g.strokeStyle = 'rgba(255,255,255,0.6)'; g.lineWidth = 2; g.setLineDash([5, 4.2]);
+        g.strokeStyle = 'rgba(255,255,255,0.4)'; g.lineWidth = 2; g.setLineDash([5, 4.2]);
         g.beginPath(); g.arc(0, 0, p.r - 1, 0, Math.PI * 2); g.stroke(); g.setLineDash([]);
-        g.translate(0, 1.5 * SX); g.scale(0.8 * SX, 0.8 * SX); g.globalAlpha = 0.6; g.strokeStyle = '#fff'; g.lineWidth = 2.6; g.stroke(carPath);
+        g.translate(0, 1.5 * SX); g.scale(0.8 * SX, 0.8 * SX); g.globalAlpha = 0.4; g.strokeStyle = '#fff'; g.lineWidth = 2.6; g.stroke(carPath);
       }
       g.restore();
     }
@@ -111,14 +108,14 @@ if (renderer) {
       ? (left === 0 ? 'غسلتك المجانية جاهزة!' : left === 1 ? 'باقي غسلة واحدة على الغسلة المجانية' : `باقي ${left} غسلات على الغسلة المجانية`)
       : (left === 0 ? 'Your free wash is ready!' : left === 1 ? '1 more wash until your free one' : `${left} more washes until your free one`);
     g.textAlign = A('left');
-    g.fillStyle = '#DCE3FF'; g.font = `600 10px ${FONT}`; g.fillText(rtl ? L.rule : (L.rule || '').toUpperCase(), S(14), 196);
+    g.fillStyle = LABEL; g.font = `600 10px ${FONT}`; g.fillText(rtl ? L.rule : (L.rule || '').toUpperCase(), S(14), 196);
     g.fillStyle = '#fff'; g.font = `400 15px ${FONT}`; g.fillText(prog, S(14), 215);
-    g.fillStyle = '#DCE3FF'; g.font = `600 10px ${FONT}`; g.fillText(rtl ? L.cust : (L.cust || '').toUpperCase(), S(14), 244);
+    g.fillStyle = LABEL; g.font = `600 10px ${FONT}`; g.fillText(rtl ? L.cust : (L.cust || '').toUpperCase(), S(14), 244);
     g.fillStyle = '#fff'; g.font = `400 15px ${FONT}`; g.fillText(state.name, S(14), 263);
     g.textAlign = A('right');
-    g.fillStyle = '#DCE3FF'; g.font = `600 10px ${FONT}`; g.fillText(rtl ? L.mid : (L.mid || '').toUpperCase(), S(W - 14), 244);
+    g.fillStyle = LABEL; g.font = `600 10px ${FONT}`; g.fillText(rtl ? L.mid : (L.mid || '').toUpperCase(), S(W - 14), 244);
     g.fillStyle = '#fff'; g.font = `400 15px ${FONT}`; g.direction = 'ltr'; g.textAlign = rtl ? 'left' : 'right';
-    g.fillText('CW-04821', rtl ? 14 : W - 14, 263); g.direction = rtl ? 'rtl' : 'ltr';
+    g.fillText('RP-04821', rtl ? 14 : W - 14, 263); g.direction = rtl ? 'rtl' : 'ltr';
     // QR
     g.fillStyle = '#fff'; rr(W / 2 - 68, 286, 136, 136, 10); g.fill();
     g.drawImage(qr, W / 2 - 60, 294, 120, 120);
@@ -134,7 +131,7 @@ if (renderer) {
   const CW = 3.4, CH = CW * H / W, CD = 0.07;
   const card = new THREE.Group(); scene.add(card);
   const body = new THREE.Mesh(new RoundedBoxGeometry(CW, CH, CD, 4, 0.16),
-    new Mat({ color: 0x1a39c4, roughness: 0.4, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.15, envMapIntensity: 0.5 }));
+    new Mat({ color: 0x161618, roughness: 0.4, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.15, envMapIntensity: 0.5 }));
   card.add(body);
   // Face shows the pass colours exactly; a thin glossy layer on top catches the light.
   const faceMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, toneMapped: false, fog: false });
@@ -143,12 +140,12 @@ if (renderer) {
   const gloss = new THREE.Mesh(new RoundedBoxGeometry(CW, CH, 0.001, 2, 0.15), new Mat({ color: 0x000000, roughness: 0.12, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.05, transparent: true, opacity: 0.18, envMapIntensity: 1.2, depthWrite: false }));
   gloss.position.z = CD / 2 + 0.006; card.add(gloss);
   // back of the card: plain blue with a faint droplet
-  const backMesh = new THREE.Mesh(new THREE.PlaneGeometry(CW, CH), new Mat({ color: 0x1733b8, roughness: 0.4, clearcoat: 1 }));
+  const backMesh = new THREE.Mesh(new THREE.PlaneGeometry(CW, CH), new Mat({ color: 0x111112, roughness: 0.4, clearcoat: 1 }));
   backMesh.rotation.y = Math.PI; backMesh.position.z = -CD / 2 - 0.002; card.add(backMesh);
   // soft shadow under the card
   const sh = document.createElement('canvas'); sh.width = sh.height = 128;
   const sg = sh.getContext('2d'); const grd = sg.createRadialGradient(64, 64, 4, 64, 64, 62);
-  grd.addColorStop(0, 'rgba(5,12,60,0.55)'); grd.addColorStop(1, 'rgba(5,12,60,0)'); sg.fillStyle = grd; sg.fillRect(0, 0, 128, 128);
+  grd.addColorStop(0, 'rgba(255,85,0,0.35)'); grd.addColorStop(1, 'rgba(255,85,0,0)'); sg.fillStyle = grd; sg.fillRect(0, 0, 128, 128);
   const shadow = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 1.3), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(sh), transparent: true, depthWrite: false }));
   shadow.rotation.x = -Math.PI / 2; shadow.position.y = -CH / 2 - 0.75; scene.add(shadow);
 
@@ -160,7 +157,7 @@ if (renderer) {
   // ---------- water drop ----------
   const prof = [];
   for (let i = 0; i <= 16; i++) { const t = i / 16, a = t * Math.PI; prof.push(new THREE.Vector2(Math.sin(a) * 0.17 * Math.pow(t, 0.6), -Math.cos(a) * 0.2 + 0.14 * Math.pow(1 - t, 3))); }
-  const dropMat = new Mat({ color: 0xcfe0ff, roughness: 0.02, metalness: 0, transmission: LOW ? 0 : 0.9, thickness: 0.3, ior: 1.33, clearcoat: 1, transparent: true, opacity: LOW ? 0.85 : 1, emissive: 0x4f74ff, emissiveIntensity: 0.15, envMapIntensity: 0.8 });
+  const dropMat = new Mat({ color: 0xcfe0ff, roughness: 0.02, metalness: 0, transmission: LOW ? 0 : 0.9, thickness: 0.3, ior: 1.33, clearcoat: 1, transparent: true, opacity: LOW ? 0.85 : 1, emissive: 0xff5500, emissiveIntensity: 0.12, envMapIntensity: 0.8 });
   const dropMesh = new THREE.Mesh(new THREE.LatheGeometry(prof, 24), dropMat);
   dropMesh.visible = false; scene.add(dropMesh);
 
@@ -180,7 +177,7 @@ if (renderer) {
   // ---------- soap bubbles ----------
   const NB = LOW ? 9 : 30;
   const bubMat = LOW
-    ? new THREE.MeshStandardMaterial({ color: 0xdfe8ff, roughness: 0.1, metalness: 0.3, transparent: true, opacity: 0.18, depthWrite: false })
+    ? new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1, metalness: 0.3, transparent: true, opacity: 0.14, depthWrite: false })
     : new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0, metalness: 0, transparent: true, opacity: 0.12, envMapIntensity: 0.6, iridescence: 1, iridescenceIOR: 1.3, iridescenceThicknessRange: [200, 800], clearcoat: 1, depthWrite: false, side: THREE.DoubleSide });
   const bubbles = new THREE.InstancedMesh(new THREE.SphereGeometry(1, LOW ? 16 : 28, LOW ? 12 : 20), bubMat, NB);
   const bub = Array.from({ length: NB }, (_, i) => ({
@@ -326,5 +323,6 @@ if (renderer) {
     if (composer) composer.render(); else renderer.render(scene, camera);
   }
   drawFace();
+  if (!logoImg.complete) logoImg.onload = () => drawFace();
   tick();
 }

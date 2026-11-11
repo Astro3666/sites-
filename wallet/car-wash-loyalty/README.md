@@ -1,7 +1,7 @@
-# Car wash loyalty card (Apple Wallet)
+# RP Car Wash: loyalty card (Apple Wallet), booking site and management dashboard
 
-A stamp card that lives in Apple Wallet and updates itself. Design follows the
-`Car_Wash_Loyalty_Card_Sample.pdf` brief: Wash Blue `#1D3FD1`, droplet + car mark,
+A stamp card that lives in Apple Wallet and updates itself, for RP Car Wash in Muscat.
+Brand: black card, RP orange `#FF5500`, the "RP CAR WASH" logo in `assets/`,
 10 stamp slots, "Wash 9 times, your 10th is free", English and Arabic.
 
 ![preview](docs/preview.png)
@@ -31,6 +31,9 @@ The pass shows in Arabic on phones set to Arabic (labels, text, and right-to-lef
 | `public/join.html`, `public/staff.html` | Customer and staff pages |
 | `scripts/sample-pass.js` | Build one sample pass without the server |
 | `scripts/preview.js` | Render a mockup of the pass to `out/preview.html` |
+| `scripts/demo-site.js` | Build the customer website preview (book, pay, add loyalty card, 3D card) to `out/demo/` |
+| `scripts/admin.html`, `scripts/admin-site.js` | Management dashboard preview with sample data (revenue, washes, busiest hours, loyalty, today's queue) to `out/admin/` |
+| `assets/` | RP Car Wash logo files (wide logo, square RP mark) |
 
 ## Setup
 
@@ -56,7 +59,7 @@ cp config.example.json config.json   # fill in business details, Apple IDs, URL,
 No Mac? Make the CSR with OpenSSL instead and use PEM files:
 
 ```bash
-openssl req -new -newkey rsa:2048 -nodes -keyout certs/pass.key -out pass.csr -subj "/CN=Car Wash Pass"
+openssl req -new -newkey rsa:2048 -nodes -keyout certs/pass.key -out pass.csr -subj "/CN=RP Car Wash Pass"
 # upload pass.csr, download pass.cer, then in config.json:
 #   "certPem": "certs/pass.cer", "keyPem": "certs/pass.key"   (instead of p12)
 ```
